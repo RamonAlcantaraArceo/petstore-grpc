@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  petstore-grpc:
+    build:
+      context: .
+      args:
+        BUILD_DATE: "${BUILD_DATE:-unknown}"
+        GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
+    ports:
+      - "50051:50051"
+    environment:
+      - MODE=prod
+      - PORT=50051
+    restart: unless-stopped

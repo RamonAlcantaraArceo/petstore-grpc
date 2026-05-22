@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "uv run pytest *",
+      "uv run ruff *",
+      "uv sync*",
+      "uv add *",
+      "git status",
+      "git diff *",
+      "git log *",
+      "docker compose config",
+      "docker compose build *",
+      "grpc_tools.protoc *",
+      "bash scripts/gen_protos.sh",
+      "npx prettier *",
+      "uv run mkdocs *"
+    ]
+  },
+  "hooks": {
+    "postToolUse": [
+      {
+        "pattern": "Edit|Write",
+        "filePattern": "**/*.py",
+        "command": "uv run ruff format {file} && uv run ruff check --fix {file}"
+      },
+      {
+        "pattern": "Edit|Write",
+        "filePattern": "**/*.md",
+        "command": "npx prettier --write {file}"
+      }
+    ],
+    "preToolUse": [
+      {
+        "pattern": "Edit|Write",
+        "filePattern": "src/petstore_grpc/generated/**",
+        "action": "block",
+        "message": "❌ Generated file — regenerate via scripts/gen_protos.sh instead."
+      }
+    ]
+  }
+}
