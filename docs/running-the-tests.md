@@ -54,14 +54,16 @@ open htmlcov/index.html  # macOS
 xdg-open htmlcov/index.html  # Linux
 ```
 
-### Coverage Requirements
+### Coverage Configuration
 
-The project enforces coverage via pytest configuration in `pyproject.toml`. To adjust:
+Coverage reporting is configured in `pyproject.toml`:
 
 ```toml
 [tool.pytest.ini_options]
-addopts = "-ra --strict-markers --cov=petstore_grpc --cov-fail-under=80"
+addopts = "-ra --strict-markers --cov=petstore_grpc"
 ```
+
+If you want to enforce a minimum threshold, add `--cov-fail-under=<percent>` to `addopts`.
 
 ## Test Organization
 

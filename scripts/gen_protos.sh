@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 mkdir -p src/petstore_grpc/generated
 
 # Generate Python stubs
-python -m grpc_tools.protoc \
+uv run python -m grpc_tools.protoc \
   --proto_path=proto \
   --python_out=src/petstore_grpc/generated \
   --grpc_python_out=src/petstore_grpc/generated \

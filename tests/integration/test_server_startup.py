@@ -1,5 +1,7 @@
 """Integration tests for server startup and gRPC communication."""
 
+import importlib.metadata
+
 import grpc
 import pytest
 
@@ -20,6 +22,6 @@ async def test_server_startup_and_health_check(grpc_channel: grpc.aio.Channel):
 
     assert response.status == "SERVING"
     assert response.mode == "dev"  # Default mode
-    assert response.details.version == "0.1.0"
+    assert response.details.version == importlib.metadata.version("petstore-grpc")
     assert isinstance(response.details.build_date, str)
     assert isinstance(response.details.git_commit_sha, str)

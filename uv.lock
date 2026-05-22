@@ -558,9 +558,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "grpcio", specifier = ">=1.66" },
-    { name = "grpcio-tools", specifier = ">=1.66" },
-    { name = "protobuf", specifier = ">=5.27" },
+    { name = "grpcio", specifier = ">=1.80.0" },
+    { name = "grpcio-tools", specifier = ">=1.80.0" },
+    { name = "protobuf", specifier = ">=6.31.1" },
 ]
 
 [package.metadata.requires-dev]

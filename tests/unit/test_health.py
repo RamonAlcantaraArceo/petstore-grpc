@@ -55,7 +55,6 @@ async def test_health_check_returns_version():
 
     expected_version = importlib.metadata.version("petstore-grpc")
     assert response.details.version == expected_version
-    assert response.details.version == "0.1.0"
 
 
 @pytest.mark.asyncio
