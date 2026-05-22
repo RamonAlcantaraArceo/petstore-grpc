@@ -35,6 +35,7 @@ __version__ = "0.2.0"  # Increment as needed
 
 ```markdown
 # In CHANGELOG.md
+
 ## [0.2.0] - 2024-XX-XX
 
 ### Added

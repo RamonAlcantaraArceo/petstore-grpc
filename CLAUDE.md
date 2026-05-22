@@ -199,8 +199,8 @@ Invoke these via the skill name when appropriate.
 
 ## Agents
 
-- **proto-reviewer** — Subagent for reviewing `.proto` file changes for breaking changes,
-  field reuse, and naming conventions
+- **proto-reviewer** — Subagent for reviewing `.proto` file changes for breaking changes, field
+  reuse, and naming conventions
 
 ## Debugging
 

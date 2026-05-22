@@ -130,7 +130,7 @@ Tests run automatically on every push and pull request via GitHub Actions:
 - **Test** — Full pytest suite with coverage
 - **Proto Check** — Verify generated stubs are up to date
 
-See [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) for the full CI pipeline.
+See `.github/workflows/ci.yml` in the repository for the full CI pipeline.
 
 ## Troubleshooting
 

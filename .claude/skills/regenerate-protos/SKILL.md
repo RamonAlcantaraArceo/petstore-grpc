@@ -27,7 +27,8 @@ Or invoke via Claude Code skill: `/regenerate-protos`
 ## After Regenerating
 
 1. **Review changes:** `git diff src/petstore_grpc/generated/`
-2. **Update imports:** If you added new services, update import statements in service implementations
+2. **Update imports:** If you added new services, update import statements in service
+   implementations
 3. **Run tests:** `uv run pytest` to verify nothing broke
 4. **Commit:** Generated files are committed to the repository
 

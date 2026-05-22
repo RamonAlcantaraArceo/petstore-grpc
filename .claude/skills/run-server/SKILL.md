@@ -105,12 +105,12 @@ docker compose down
 
 ## Configuration Reference
 
-| Variable          | Default   | Description                        |
-| ----------------- | --------- | ---------------------------------- |
-| `PORT`            | `50051`   | gRPC server port                   |
-| `MODE`            | `dev`     | Runtime mode (dev, prod, staging)  |
-| `BUILD_DATE`      | `unknown` | Build timestamp (Docker only)      |
-| `GIT_COMMIT_SHA`  | `unknown` | Git commit SHA (Docker only)       |
+| Variable         | Default   | Description                       |
+| ---------------- | --------- | --------------------------------- |
+| `PORT`           | `50051`   | gRPC server port                  |
+| `MODE`           | `dev`     | Runtime mode (dev, prod, staging) |
+| `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)     |
+| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)      |
 
 ## Troubleshooting
 

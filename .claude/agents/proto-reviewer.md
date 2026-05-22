@@ -137,5 +137,5 @@ message User {
 
 ## Integration with Workflow
 
-This agent should be invoked as part of proto change reviews, ideally before merging to main.
-The CI pipeline's proto drift check ensures generated files stay in sync.
+This agent should be invoked as part of proto change reviews, ideally before merging to main. The CI
+pipeline's proto drift check ensures generated files stay in sync.

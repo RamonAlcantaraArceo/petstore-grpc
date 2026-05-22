@@ -2,7 +2,6 @@
 
 import importlib.metadata
 import logging
-from typing import Any
 
 import grpc
 

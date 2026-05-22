@@ -78,12 +78,13 @@ bash scripts/gen_protos.sh
 
 ## Documentation
 
-Full documentation is available at the [project docs site](https://ramonalcantaraarceo.github.io/petstore-grpc/).
+Full documentation is available at the
+[project docs site](https://ramonalcantaraarceo.github.io/petstore-grpc/).
 
 ## Contributing with Claude Code
 
-This repository includes Claude Code agent configurations for enhanced development workflow.
-See [CLAUDE.md](CLAUDE.md) for details on using the agent effectively.
+This repository includes Claude Code agent configurations for enhanced development workflow. See
+`CLAUDE.md` in the repository for details on using the agent effectively.
 
 ## License
 

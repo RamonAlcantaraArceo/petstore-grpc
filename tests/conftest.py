@@ -1,7 +1,6 @@
 """Shared pytest fixtures."""
 
-import asyncio
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 import grpc
 import pytest
@@ -11,32 +10,33 @@ from petstore_grpc.services.health import HealthServicer
 
 
 @pytest.fixture
-async def grpc_server() -> AsyncIterator[grpc.aio.Server]:
+async def grpc_server() -> AsyncIterator[tuple[grpc.aio.Server, int]]:
     """Create an in-process gRPC server for testing.
 
     Yields:
-        Running gRPC server instance.
+        Tuple of (running gRPC server instance, port number).
     """
     server = grpc.aio.server()
     health_pb2_grpc.add_HealthServicer_to_server(HealthServicer(), server)
     port = server.add_insecure_port("localhost:0")  # Ephemeral port
 
     await server.start()
-    yield server
+    yield server, port
     await server.stop(grace=0)
 
 
 @pytest.fixture
-async def grpc_channel(grpc_server: grpc.aio.Server) -> AsyncIterator[grpc.aio.Channel]:
+async def grpc_channel(
+    grpc_server: tuple[grpc.aio.Server, int],
+) -> AsyncIterator[grpc.aio.Channel]:
     """Create a gRPC channel connected to the test server.
 
     Args:
-        grpc_server: The running test server.
+        grpc_server: Tuple of (server, port) from grpc_server fixture.
 
     Yields:
         Client channel to the server.
     """
-    # Extract the actual port bound by the server
-    port = list(grpc_server._server._state.server_ports)[0]
+    _, port = grpc_server
     async with grpc.aio.insecure_channel(f"localhost:{port}") as channel:
         yield channel
