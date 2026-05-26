@@ -1,5 +1,5 @@
+"""Script to generate gRPC documentation using the protoc-gen-doc tool in a Docker container."""
 #!/usr/bin/env python3
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -9,7 +9,9 @@ PROTO_DIR = ROOT / "proto" / "petstore" / "v1"
 OUTPUT_DIR = ROOT / "docs" / "grpc"
 OUTPUT_FILE = "grpc.md"
 
+
 def main():
+    """Entry point. Generates gRPC documentation using a Dockerized protoc-gen-doc."""
     # Validate proto directory
     if not PROTO_DIR.exists():
         print(f"❌ Proto directory not found: {PROTO_DIR}")
@@ -26,13 +28,18 @@ def main():
 
     # Build docker command
     docker_cmd = [
-        "docker", "run", "--rm",
-        "--platform", "linux/amd64",
-        "-v", f"{ROOT}:/workspace",
+        "docker",
+        "run",
+        "--rm",
+        "--platform",
+        "linux/amd64",
+        "-v",
+        f"{ROOT}:/workspace",
         "pseudomuto/protoc-gen-doc",
         "--doc_opt=markdown," + OUTPUT_FILE,
         f"--doc_out=/workspace/{OUTPUT_DIR.relative_to(ROOT)}",
-        "-I", "/workspace/proto",
+        "-I",
+        "/workspace/proto",
     ]
 
     # Append proto files with /workspace prefix
@@ -50,6 +57,7 @@ def main():
         print("\n❌ Failed to generate documentation")
         print(e)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
