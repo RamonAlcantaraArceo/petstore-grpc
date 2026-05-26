@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package petstore.v1;
+
+import "petstore/v1/common.proto";
+
+option go_package = "github.com/petstore/api/gen/petstore/v1;petstorev1";
+option java_multiple_files = true;
+option java_package = "com.petstore.v1";
+
+message GetInventoryRequest {}
+message GetInventoryResponse {
+  repeated Order orders = 1;
+}
+
+message PlaceOrderRequest {
+  // Order to place. `id` is server-assigned and ignored on input.
+  Order order = 1;
+}
+message PlaceOrderResponse {
+  Order order = 1;
+}
+
+message GetOrderByIdRequest {
+  int64 order_id = 1;
+}
+message GetOrderByIdResponse {
+  Order order = 1;
+}
+
+message DeleteOrderRequest {
+  int64 order_id = 1;
+}
+message DeleteOrderResponse {
+  map<string, string> message = 1;
+}
+
+// Store service mirrors /api/v1/store/* endpoints.
+service StoreService {
+  rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse);
+  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+  rpc GetOrderById(GetOrderByIdRequest) returns (GetOrderByIdResponse);
+  rpc DeleteOrder(DeleteOrderRequest) returns (DeleteOrderResponse);
+}

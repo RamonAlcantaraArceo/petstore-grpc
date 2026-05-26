@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package petstore.v1;
+
+option go_package = "github.com/petstore/api/gen/petstore/v1;petstorev1";
+option java_multiple_files = true;
+option java_package = "com.petstore.v1";
+
+// Build and version metadata.
+message HealthDetails {
+  string version = 1;
+  string build_date = 2;
+  string git_commit_sha = 3;
+}
+
+message HealthCheckRequest {}
+
+// Health check response payload.
+message HealthCheckResponse {
+  // Service status string (e.g. "ok").
+  string status = 1;
+  // Storage mode.
+  string mode = 2;
+  HealthDetails details = 3;
+}
+
+// Health service mirrors GET /health and GET /api/v1/health.
+service HealthService {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}

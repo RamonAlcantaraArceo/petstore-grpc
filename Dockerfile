@@ -30,12 +30,11 @@ ENV PORT=50051
 
 WORKDIR /app
 
-# Copy virtual environment from builder
-COPY --from=builder /app/.venv /app/.venv
+# Copy wheel artifact from builder
 COPY --from=builder /app/dist/*.whl /tmp/
 
-# Install the wheel
-RUN /app/.venv/bin/pip install /tmp/*.whl && rm -rf /tmp/*.whl
+# Install the wheel using the system Python's pip (avoid relying on a copied venv)
+RUN python -m pip install --no-cache-dir /tmp/*.whl && rm -rf /tmp/*.whl
 
 # Expose gRPC port
 EXPOSE 50051
@@ -44,7 +43,6 @@ EXPOSE 50051
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Set PATH to use venv
-ENV PATH="/app/.venv/bin:$PATH"
+# No venv copied into the runtime image; use the system Python
 
 CMD ["python", "-m", "petstore_grpc"]

@@ -13,3 +13,15 @@ services:
       - MODE=prod
       - PORT=50051
     restart: unless-stopped
+
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    depends_on:
+      - petstore-grpc
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    restart: unless-stopped

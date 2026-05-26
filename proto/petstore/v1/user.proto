@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package petstore.v1;
+
+import "petstore/v1/common.proto";
+
+option go_package = "github.com/petstore/api/gen/petstore/v1;petstorev1";
+option java_multiple_files = true;
+option java_package = "com.petstore.v1";
+
+message CreateUserRequest {
+  User user = 1;
+  // Plain-text password (hashed before storage).
+  optional string password = 2;
+}
+message CreateUserResponse {
+  User user = 1;
+}
+
+message CreateUsersWithListRequest {
+  repeated CreateUserRequest users = 1;
+}
+message CreateUsersWithListResponse {
+  repeated User users = 1;
+}
+
+message LoginUserRequest {
+  string username = 1;
+  string password = 2;
+}
+message LoginUserResponse {
+  // Session token / metadata key-value pairs (mirrors JSON map response).
+  map<string, string> session = 1;
+}
+
+message LogoutUserRequest {}
+message LogoutUserResponse {
+  map<string, string> message = 1;
+}
+
+message GetUserByNameRequest {
+  string username = 1;
+}
+message GetUserByNameResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  // Current username (path parameter).
+  string username = 1;
+  User user = 2;
+  // Optional new password.
+  optional string password = 3;
+}
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string username = 1;
+}
+message DeleteUserResponse {
+  map<string, string> message = 1;
+}
+
+// User service mirrors /api/v1/user/* endpoints.
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc CreateUsersWithList(CreateUsersWithListRequest) returns (CreateUsersWithListResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+  rpc LogoutUser(LogoutUserRequest) returns (LogoutUserResponse);
+  rpc GetUserByName(GetUserByNameRequest) returns (GetUserByNameResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Petstore gRPC-Web Health Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 1rem;
+        border-radius: 4px;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Petstore Health (gRPC-Web)</h1>
+    <p>
+      Calls <code>petstore.v1.Health/Check</code> through Envoy at
+      <code>http://localhost:8080</code>.
+    </p>
+    <button id="check">Check health</button>
+    <h2 id="status">Idle</h2>
+    <pre id="details"></pre>
+    <script src="main.js"></script>
+  </body>
+</html>

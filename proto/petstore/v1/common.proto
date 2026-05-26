@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package petstore.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/petstore/api/gen/petstore/v1;petstorev1";
+option java_multiple_files = true;
+option java_package = "com.petstore.v1";
+
+// Pet availability status.
+enum PetStatus {
+  PET_STATUS_UNSPECIFIED = 0;
+  PET_STATUS_AVAILABLE = 1;
+  PET_STATUS_PENDING = 2;
+  PET_STATUS_SOLD = 3;
+}
+
+// Order fulfillment status.
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_PLACED = 1;
+  ORDER_STATUS_APPROVED = 2;
+  ORDER_STATUS_DELIVERED = 3;
+}
+
+// Pet category.
+message Category {
+  optional int64 id = 1;
+  optional string name = 2;
+}
+
+// Pet tag.
+message Tag {
+  optional int64 id = 1;
+  optional string name = 2;
+}
+
+// Full pet resource.
+message Pet {
+  optional int64 id = 1;
+  string name = 2;
+  repeated string photo_urls = 3;
+  optional Category category = 4;
+  repeated Tag tags = 5;
+  PetStatus status = 6;
+}
+
+// Order resource.
+message Order {
+  optional int64 id = 1;
+  optional int64 pet_id = 2;
+  optional int32 quantity = 3;
+  optional google.protobuf.Timestamp ship_date = 4;
+  OrderStatus status = 5;
+  bool complete = 6;
+}
+
+// User resource.
+message User {
+  optional int64 id = 1;
+  optional string username = 2;
+  optional string first_name = 3;
+  optional string last_name = 4;
+  optional string email = 5;
+  optional string phone = 6;
+  optional int32 user_status = 7;
+}

@@ -1,0 +1,9 @@
+# Generated gRPC-Web stubs (run scripts/gen_grpc_web.sh)
+grpc/petstore/
+
+# Bundler output
+demo/main.js
+demo/main.js.map
+
+# Node
+node_modules/
