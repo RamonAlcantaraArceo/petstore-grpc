@@ -31,9 +31,9 @@ static_resources:
                         max_age: "1728000"
                         expose_headers: custom-header-1,grpc-status,grpc-message
                       routes:
-                        # Route only the Health service to the upstream gRPC server.
+                        # Route all Petstore v1 services to the upstream gRPC server.
                         - match:
-                            prefix: "/petstore.v1.Health/"
+                            prefix: "/petstore.v1."
                           route:
                             cluster: grpc_server
                             timeout: 0s
@@ -53,6 +53,14 @@ static_resources:
   clusters:
     - name: grpc_server
       type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      # Use getaddrinfo (system resolver) so /etc/hosts is respected.
+      # This ensures host.docker.internal resolves to its IPv4 address
+      # when running Envoy in Docker with the gRPC server on the host.
+      typed_dns_resolver_config:
+        name: envoy.network.dns_resolver.getaddrinfo
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.network.dns_resolver.getaddrinfo.v3.GetAddrInfoDnsResolverConfig
       connect_timeout: 5s
       lb_policy: ROUND_ROBIN
       typed_extension_protocol_options:
@@ -67,5 +75,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: petstore-grpc
+                      address: ${GRPC_UPSTREAM_HOST}
                       port_value: 50051

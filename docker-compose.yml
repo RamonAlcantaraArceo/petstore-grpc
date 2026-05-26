@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   petstore-grpc:
+    profiles: [app]
     build:
       context: .
       args:
@@ -16,12 +15,25 @@ services:
 
   envoy:
     image: envoyproxy/envoy:v1.31-latest
-    depends_on:
-      - petstore-grpc
     ports:
       - "8080:8080"
       - "9901:9901"
+    environment:
+      # Full stack (default): gRPC server is the petstore-grpc container.
+      # Mixed mode (gRPC on host): override with GRPC_UPSTREAM_HOST=host.docker.internal
+      - GRPC_UPSTREAM_HOST=${GRPC_UPSTREAM_HOST:-host.docker.internal}
+    extra_hosts:
+      # Allows containers to reach the host machine on Linux (no-op on macOS/Windows).
+      - "host.docker.internal:host-gateway"
     volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
-    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+      - ./envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
+    command:
+      - sh
+      - -c
+      # $${ } is Compose escape for ${ } — the shell inside the container sees ${GRPC_UPSTREAM_HOST}.
+      # \$${GRPC_UPSTREAM_HOST} → literal ${GRPC_UPSTREAM_HOST} in the sed pattern (not expanded by shell).
+      # $${GRPC_UPSTREAM_HOST}  → ${GRPC_UPSTREAM_HOST} expanded by shell to its value.
+      - |
+        sed "s|\$${GRPC_UPSTREAM_HOST}|$${GRPC_UPSTREAM_HOST}|g" /etc/envoy/envoy.yaml.tmpl > /tmp/envoy.yaml \
+        && envoy -c /tmp/envoy.yaml --log-level info
     restart: unless-stopped
