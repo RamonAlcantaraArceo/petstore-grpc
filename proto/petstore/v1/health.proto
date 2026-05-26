@@ -9,7 +9,7 @@ message HealthRequest {}
 
 message HealthResponse {
   string status = 1;   // "SERVING" | "NOT_SERVING"
-  string mode   = 2;   // e.g. "dev", "prod"
+  string mode   = 2;   // e.g. "memory", "local", "cloud"
   Details details = 3;
 
   message Details {

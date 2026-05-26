@@ -5,9 +5,10 @@ import logging
 import signal
 
 import grpc
+from grpc_reflection.v1alpha import reflection
 
 from petstore_grpc.config import get_settings
-from petstore_grpc.generated.petstore.v1 import health_pb2_grpc
+from petstore_grpc.generated.petstore.v1 import health_pb2, health_pb2_grpc
 from petstore_grpc.services.health import HealthServicer
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,16 @@ async def serve() -> None:
     # Bind to port
     listen_addr = f"0.0.0.0:{settings.port}"
     server.add_insecure_port(listen_addr)
+
+    # Enable gRPC Server Reflection so tools (grpcurl) can introspect services
+    try:
+        service_names = (
+            health_pb2.DESCRIPTOR.services_by_name["Health"].full_name,
+            reflection.SERVICE_NAME,
+        )
+        reflection.enable_server_reflection(service_names, server)
+    except Exception:
+        logger.exception("Failed to enable gRPC server reflection")
 
     logger.info("Starting gRPC server on %s (mode=%s)", listen_addr, settings.mode)
     await server.start()

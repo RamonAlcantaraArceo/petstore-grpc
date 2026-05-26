@@ -6,7 +6,8 @@ dynamic = ["version"]
 dependencies = [
   "grpcio>=1.80.0",
   "grpcio-tools>=1.80.0",
-  "protobuf>=6.31.1",
+  "grpcio-reflection>=1.80.0",
+  "protobuf>=6.31.6",
 ]
 
 [project.scripts]
@@ -24,13 +25,13 @@ packages = ["src/petstore_grpc"]
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
-  "pytest-asyncio>=0.24",
-  "pytest-cov>=5",
-  "ruff>=0.6",
-  "mkdocs>=1.6",
-  "mkdocs-material>=9.5",
-  "mkdocs-include-markdown-plugin>=6.0",
+  "pytest>=9.0.3",
+  "pytest-asyncio>=1.4.0",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.14",
+  "mkdocs>=1.6.1",
+  "mkdocs-material>=9.7.6",
+  "mkdocs-include-markdown-plugin>=7.3.0",
 ]
 
 [tool.ruff]

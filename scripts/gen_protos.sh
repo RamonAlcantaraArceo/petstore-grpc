@@ -24,4 +24,7 @@ else
   find src/petstore_grpc/generated -name "*_pb2_grpc.py" -exec sed -i 's/^from petstore\.v1 import \(.*\)_pb2 as/from . import \1_pb2 as/g' {} \;
 fi
 
+uv run ruff format src/petstore_grpc/generated
+uv run ruff check src/petstore_grpc/generated --fix --unsafe-fixes
+
 echo "✓ Proto stubs generated successfully"
