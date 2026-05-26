@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 import signal
+import time
 
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -25,6 +26,45 @@ from petstore_grpc.services.store import StoreServicer
 from petstore_grpc.services.user import UserServicer
 
 logger = logging.getLogger(__name__)
+
+
+class RequestLoggingInterceptor(grpc.aio.ServerInterceptor):
+    """Log each RPC request that reaches this server."""
+
+    async def intercept_service(self, continuation, handler_call_details):
+        method = handler_call_details.method
+        handler = await continuation(handler_call_details)
+
+        if handler is None:
+            logger.warning("RPC not handled: method=%s", method)
+            return None
+
+        if handler.unary_unary:
+            original = handler.unary_unary
+
+            async def wrapped(request, context):
+                start = time.perf_counter()
+                logger.info("RPC start: method=%s peer=%s", method, context.peer())
+                try:
+                    response = await original(request, context)
+                except Exception:
+                    elapsed_ms = (time.perf_counter() - start) * 1000
+                    logger.exception("RPC error: method=%s duration_ms=%.1f", method, elapsed_ms)
+                    raise
+
+                elapsed_ms = (time.perf_counter() - start) * 1000
+                code = context.code() or grpc.StatusCode.OK
+                logger.info("RPC done: method=%s code=%s duration_ms=%.1f", method, code.name, elapsed_ms)
+                return response
+
+            return grpc.unary_unary_rpc_method_handler(
+                wrapped,
+                request_deserializer=handler.request_deserializer,
+                response_serializer=handler.response_serializer,
+            )
+
+        # Keep non-unary handlers unchanged; current API is unary-only.
+        return handler
 
 
 async def serve() -> None:
@@ -50,7 +90,7 @@ async def serve() -> None:
         await seed_db()
         logger.info("Seed dataset '%s' applied", os.environ["SEED_DATASET"])
 
-    server = grpc.aio.server()
+    server = grpc.aio.server(interceptors=[RequestLoggingInterceptor()])
 
     # Register servicers
     health_pb2_grpc.add_HealthServicer_to_server(HealthServicer(), server)

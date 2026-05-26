@@ -1,0 +1,45 @@
+{
+  "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "databaseUrl",
+      "type": "promptString",
+      "description": "PostgreSQL connection string for the DB-backed gRPC debug run",
+      "default": "postgresql://postgres:postgres@localhost:5432/petstore"
+    }
+  ],
+  "configurations": [
+    {
+      "name": "petstore-grpc: debug memory",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "petstore_grpc",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "LOG_LEVEL": "DEBUG",
+        "MODE": "dev",
+        "PORT": "50051",
+        "SEED_DATASET": "basic",
+        "STORAGE_MODE": "memory"
+      }
+    },
+    {
+      "name": "petstore-grpc: debug database",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "petstore_grpc",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "LOG_LEVEL": "DEBUG",
+        "MODE": "dev",
+        "PORT": "50051",
+        "STORAGE_MODE": "local",
+        "DATABASE_URL": "${input:databaseUrl}"
+      }
+    }
+  ]
+}

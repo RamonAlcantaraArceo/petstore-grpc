@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+import os
+
+from contextlib import asynccontextmanager
+
 import grpc
+from fastapi import HTTPException
+from app.dependencies import get_memory_pet_repo
 from app.repositories.postgres.pet import PostgresPetRepository
+from app.services.pet import PetService
 from app.schemas.pet import Category, Pet, PetCreate, PetStatus, PetUpdate, Tag
 
 from petstore_grpc.db import get_session
@@ -87,6 +94,16 @@ def _schema_to_proto_pet(pet: Pet) -> common_pb2.Pet:
 class PetServicer(pet_pb2_grpc.PetServiceServicer):
     """gRPC PetService implementation backed by PostgresPetRepository."""
 
+    @asynccontextmanager
+    async def _service(self):
+        """Yield a PetService backed by the configured storage mode."""
+        if os.environ.get("STORAGE_MODE", "memory") == "memory":
+            yield PetService(get_memory_pet_repo())
+            return
+
+        async with get_session() as session:
+            yield PetService(PostgresPetRepository(session))
+
     async def AddPet(
         self,
         request: pet_pb2.AddPetRequest,
@@ -109,8 +126,8 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
             tags=_proto_to_tags(p.tags),
             status=_PROTO_TO_PET_STATUS.get(p.status),
         )
-        async with get_session() as session:
-            pet = await PostgresPetRepository(session).create(create)
+        async with self._service() as service:
+            pet = await service.add_pet(create)
         return pet_pb2.AddPetResponse(pet=_schema_to_proto_pet(pet))
 
     async def UpdatePet(
@@ -138,11 +155,12 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
             tags=_proto_to_tags(p.tags),
             status=_PROTO_TO_PET_STATUS.get(p.status),
         )
-        async with get_session() as session:
+        async with self._service() as service:
             try:
-                pet = await PostgresPetRepository(session).update(update)
-            except KeyError:
-                await context.abort(grpc.StatusCode.NOT_FOUND, f"Pet {p.id} not found")
+                pet = await service.update_pet(update)
+            except HTTPException as exc:
+                status = grpc.StatusCode.NOT_FOUND if exc.status_code == 404 else grpc.StatusCode.UNKNOWN
+                await context.abort(status, str(exc.detail))
         return pet_pb2.UpdatePetResponse(pet=_schema_to_proto_pet(pet))
 
     async def FindPetsByStatus(
@@ -162,10 +180,8 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
         status = _PROTO_TO_PET_STATUS.get(request.status)
         status_str = status.value if status else None
         limit = request.limit or None
-        async with get_session() as session:
-            pets = await PostgresPetRepository(session).list_by_status(
-                status_str, skip=request.skip, limit=limit
-            )
+        async with self._service() as service:
+            pets = await service.find_by_status(status_str, skip=request.skip, limit=limit)
         return pet_pb2.FindPetsByStatusResponse(pets=[_schema_to_proto_pet(p) for p in pets])
 
     async def FindPetsByTags(
@@ -182,8 +198,8 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
         Returns:
             FindPetsByTagsResponse with matching pets.
         """
-        async with get_session() as session:
-            pets = await PostgresPetRepository(session).list_by_tags(list(request.tags))
+        async with self._service() as service:
+            pets = await service.find_by_tags(list(request.tags))
         return pet_pb2.FindPetsByTagsResponse(pets=[_schema_to_proto_pet(p) for p in pets])
 
     async def GetPetById(
@@ -200,10 +216,12 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
         Returns:
             GetPetByIdResponse with the pet.
         """
-        async with get_session() as session:
-            pet = await PostgresPetRepository(session).get(request.pet_id)
-        if pet is None:
-            await context.abort(grpc.StatusCode.NOT_FOUND, f"Pet {request.pet_id} not found")
+        async with self._service() as service:
+            try:
+                pet = await service.get_pet(request.pet_id)
+            except HTTPException as exc:
+                status = grpc.StatusCode.NOT_FOUND if exc.status_code == 404 else grpc.StatusCode.UNKNOWN
+                await context.abort(status, str(exc.detail))
         return pet_pb2.GetPetByIdResponse(pet=_schema_to_proto_pet(pet))
 
     async def UpdatePetWithForm(
@@ -220,30 +238,24 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
         Returns:
             UpdatePetWithFormResponse with the updated pet.
         """
-        async with get_session() as session:
-            repo = PostgresPetRepository(session)
-            pet = await repo.get(request.pet_id)
-            if pet is None:
-                await context.abort(grpc.StatusCode.NOT_FOUND, f"Pet {request.pet_id} not found")
+        new_name = request.name if request.HasField("name") else None
+        new_status = None
+        if request.HasField("status"):
+            try:
+                new_status = PetStatus(request.status).value
+            except ValueError:
+                new_status = None
 
-            new_name = request.name if request.HasField("name") else pet.name
-            if request.HasField("status"):
-                try:
-                    new_status: PetStatus | None = PetStatus(request.status)
-                except ValueError:
-                    new_status = pet.status
-            else:
-                new_status = pet.status
-
-            update = PetUpdate(
-                id=pet.id,
-                name=new_name,
-                photo_urls=pet.photo_urls,
-                category=pet.category,
-                tags=pet.tags,
-                status=new_status,
-            )
-            updated = await repo.update(update)
+        async with self._service() as service:
+            try:
+                updated = await service.update_pet_with_form(
+                    request.pet_id,
+                    name=new_name,
+                    status=new_status,
+                )
+            except HTTPException as exc:
+                status = grpc.StatusCode.NOT_FOUND if exc.status_code == 404 else grpc.StatusCode.UNKNOWN
+                await context.abort(status, str(exc.detail))
         return pet_pb2.UpdatePetWithFormResponse(pet=_schema_to_proto_pet(updated))
 
     async def DeletePet(
@@ -260,11 +272,12 @@ class PetServicer(pet_pb2_grpc.PetServiceServicer):
         Returns:
             DeletePetResponse with confirmation.
         """
-        async with get_session() as session:
+        async with self._service() as service:
             try:
-                await PostgresPetRepository(session).delete(request.pet_id)
-            except KeyError:
-                await context.abort(grpc.StatusCode.NOT_FOUND, f"Pet {request.pet_id} not found")
+                await service.delete_pet(request.pet_id)
+            except HTTPException as exc:
+                status = grpc.StatusCode.NOT_FOUND if exc.status_code == 404 else grpc.StatusCode.UNKNOWN
+                await context.abort(status, str(exc.detail))
         return pet_pb2.DeletePetResponse(message={"result": "ok"})
 
     async def UploadFile(
