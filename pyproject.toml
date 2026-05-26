@@ -1,0 +1,56 @@
+[project]
+name = "petstore-grpc"
+description = "Petstore gRPC service"
+requires-python = ">=3.12"
+dynamic = ["version"]
+dependencies = [
+  "grpcio>=1.80.0",
+  "grpcio-tools>=1.80.0",
+  "grpcio-reflection>=1.80.0",
+  "protobuf>=6.31.6",
+]
+
+[project.scripts]
+petstore-grpc = "petstore_grpc.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/petstore_grpc/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/petstore_grpc"]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.3",
+  "pytest-asyncio>=1.4.0",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.14",
+  "mkdocs>=1.6.1",
+  "mkdocs-material>=9.7.6",
+  "mkdocs-include-markdown-plugin>=7.3.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "D"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+"src/petstore_grpc/generated/**" = ["ALL"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=petstore_grpc"

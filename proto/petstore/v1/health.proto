@@ -1,0 +1,20 @@
+syntax = "proto3";
+package petstore.v1;
+
+service Health {
+  rpc Check(HealthRequest) returns (HealthResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;   // "SERVING" | "NOT_SERVING"
+  string mode   = 2;   // e.g. "memory", "local", "cloud"
+  Details details = 3;
+
+  message Details {
+    string version        = 1;
+    string build_date     = 2;
+    string git_commit_sha = 3;
+  }
+}

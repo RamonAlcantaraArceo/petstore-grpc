@@ -84,7 +84,7 @@ Full documentation is available at the
 ## Contributing with Claude Code
 
 This repository includes Claude Code agent configurations for enhanced development workflow. See
-[CLAUDE.md](CLAUDE.md) for details on using the agent effectively.
+`CLAUDE.md` in the repository for details on using the agent effectively.
 
 ## License
 
