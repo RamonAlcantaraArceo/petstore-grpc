@@ -1,4 +1,5 @@
 """Script to generate gRPC documentation using the protoc-gen-doc tool in a Docker container."""
+
 #!/usr/bin/env python3
 import subprocess
 import sys
