@@ -50,3 +50,5 @@ nav:
   - Running the Server: running-the-server.md
   - Running the Tests: running-the-tests.md
   - Architecture: architecture.md
+  - gRPC Client:
+    - Health Check: gRPC_client/health.md
