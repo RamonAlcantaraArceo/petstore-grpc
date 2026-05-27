@@ -7,6 +7,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Set working directory
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 COPY src/ src/
@@ -15,18 +19,23 @@ COPY src/ src/
 RUN uv sync --frozen --no-dev && \
     uv build
 
-# Stage 2: Runtime
+# Stage 2: Runtime — Python app + Envoy managed by supervisord
 FROM python:3.14-slim
 
 # Build metadata arguments
 ARG BUILD_DATE=unknown
 ARG GIT_COMMIT_SHA=unknown
 
-# Set as environment variables
 ENV BUILD_DATE=${BUILD_DATE}
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
 ENV MODE=prod
 ENV PORT=50051
+
+# Install supervisord; copy Envoy binary from the official image
+RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=envoyproxy/envoy:v1.31-latest /usr/local/bin/envoy /usr/local/bin/envoy
 
 WORKDIR /app
 
@@ -36,13 +45,9 @@ COPY --from=builder /app/dist/*.whl /tmp/
 # Install the wheel using the system Python's pip (avoid relying on a copied venv)
 RUN python -m pip install --no-cache-dir /tmp/*.whl && rm -rf /tmp/*.whl
 
-# Expose gRPC port
-EXPOSE 50051
+COPY envoy.yaml /etc/envoy/envoy.yaml
+COPY fly/supervisord.conf /etc/supervisor/conf.d/petstore.conf
 
-# Run as non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+EXPOSE 50051 8080
 
-# No venv copied into the runtime image; use the system Python
-
-CMD ["python", "-m", "petstore_grpc"]
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/petstore.conf"]

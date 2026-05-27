@@ -614,8 +614,8 @@ wheels = [
 
 [[package]]
 name = "petstore-api"
-version = "0.1.1rc3.post1.dev13+gb4a106314"
-source = { git = "https://github.com/RamonAlcantaraArceo/petstore-api.git?rev=main#b4a10631472e13150051b7a8c1d9173d323d689a" }
+version = "0.1.1rc3.post1.dev15+gfa6ca84f7"
+source = { git = "https://github.com/RamonAlcantaraArceo/petstore-api.git?rev=gen-proto#fa6ca84f7c55e602d2f079e65a7b7976773438a7" }
 dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
@@ -656,7 +656,7 @@ requires-dist = [
     { name = "grpcio", specifier = ">=1.80.0" },
     { name = "grpcio-reflection", specifier = ">=1.80.0" },
     { name = "grpcio-tools", specifier = ">=1.80.0" },
-    { name = "petstore-api", git = "https://github.com/RamonAlcantaraArceo/petstore-api.git?rev=main" },
+    { name = "petstore-api", git = "https://github.com/RamonAlcantaraArceo/petstore-api.git?rev=gen-proto" },
     { name = "protobuf", specifier = ">=6.31.6" },
 ]
 

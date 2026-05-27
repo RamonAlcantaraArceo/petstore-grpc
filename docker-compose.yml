@@ -1,39 +1,15 @@
 services:
   petstore-grpc:
-    profiles: [app]
     build:
       context: .
       args:
         BUILD_DATE: "${BUILD_DATE:-unknown}"
         GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
     ports:
-      - "50051:50051"
+      - "${HOST_GRPC_PORT:-50051}:50051"  # native gRPC
+      - "${HOST_GRPC_WEB_PORT:-8080}:8080"  # gRPC-Web via Envoy
+      - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901"  # Envoy admin UI
     environment:
       - MODE=prod
       - PORT=50051
-    restart: unless-stopped
-
-  envoy:
-    image: envoyproxy/envoy:v1.31-latest
-    ports:
-      - "8080:8080"
-      - "9901:9901"
-    environment:
-      # Full stack (default): gRPC server is the petstore-grpc container.
-      # Mixed mode (gRPC on host): override with GRPC_UPSTREAM_HOST=host.docker.internal
-      - GRPC_UPSTREAM_HOST=${GRPC_UPSTREAM_HOST:-host.docker.internal}
-    extra_hosts:
-      # Allows containers to reach the host machine on Linux (no-op on macOS/Windows).
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
-    command:
-      - sh
-      - -c
-      # $${ } is Compose escape for ${ } — the shell inside the container sees ${GRPC_UPSTREAM_HOST}.
-      # \$${GRPC_UPSTREAM_HOST} → literal ${GRPC_UPSTREAM_HOST} in the sed pattern (not expanded by shell).
-      # $${GRPC_UPSTREAM_HOST}  → ${GRPC_UPSTREAM_HOST} expanded by shell to its value.
-      - |
-        sed "s|\$${GRPC_UPSTREAM_HOST}|$${GRPC_UPSTREAM_HOST}|g" /etc/envoy/envoy.yaml.tmpl > /tmp/envoy.yaml \
-        && envoy -c /tmp/envoy.yaml --log-level info
     restart: unless-stopped
