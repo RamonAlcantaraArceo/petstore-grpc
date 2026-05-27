@@ -1,16 +1,22 @@
-"""gRPC StoreService implementation backed by PostgresOrderRepository."""
+"""gRPC StoreService adapter backed by petstore_core services."""
 
 from __future__ import annotations
 
+import os
+from contextlib import asynccontextmanager
 from datetime import UTC
 
 import grpc
-from app.repositories.postgres.order import PostgresOrderRepository
-from app.schemas.order import Order, OrderCreate, OrderStatus
 from google.protobuf.timestamp_pb2 import Timestamp
+from petstore_core.errors import DomainError
+from petstore_core.repositories.postgres.order import PostgresOrderRepository
+from petstore_core.schemas.order import Order, OrderCreate, OrderStatus
+from petstore_core.services.order import OrderService
 
 from petstore_grpc.db import get_session
 from petstore_grpc.generated.petstore.v1 import common_pb2, store_pb2, store_pb2_grpc
+from petstore_grpc.services._memory import get_memory_order_repo
+from petstore_grpc.services.error_mapping import abort_for_domain_error
 
 _PROTO_TO_ORDER_STATUS: dict[int, OrderStatus] = {
     common_pb2.ORDER_STATUS_PLACED: OrderStatus.placed,
@@ -22,14 +28,7 @@ _ORDER_STATUS_TO_PROTO: dict[OrderStatus, int] = {v: k for k, v in _PROTO_TO_ORD
 
 
 def _schema_to_proto_order(order: Order) -> common_pb2.Order:
-    """Convert a petstore-api Order schema to a proto Order message.
-
-    Args:
-        order: An Order Pydantic schema.
-
-    Returns:
-        A proto Order message.
-    """
+    """Convert a core Order schema to a proto Order message."""
     proto = common_pb2.Order(
         status=_ORDER_STATUS_TO_PROTO.get(order.status, common_pb2.ORDER_STATUS_UNSPECIFIED),
         complete=bool(order.complete),
@@ -51,24 +50,30 @@ def _schema_to_proto_order(order: Order) -> common_pb2.Order:
 
 
 class StoreServicer(store_pb2_grpc.StoreServiceServicer):
-    """gRPC StoreService implementation backed by PostgresOrderRepository."""
+    """gRPC StoreService adapter backed by core repositories."""
+
+    @asynccontextmanager
+    async def _service(self):
+        """Yield an OrderService backed by the configured storage mode."""
+        if os.environ.get("STORAGE_MODE", "memory") == "memory":
+            yield OrderService(get_memory_order_repo())
+            return
+
+        async with get_session() as session:
+            yield OrderService(
+                PostgresOrderRepository(session),
+                commit=session.commit,
+                rollback=session.rollback,
+            )
 
     async def GetInventory(
         self,
         request: store_pb2.GetInventoryRequest,
         context: grpc.aio.ServicerContext,
     ) -> store_pb2.GetInventoryResponse:
-        """Return all orders as inventory.
-
-        Args:
-            request: Empty GetInventoryRequest.
-            context: gRPC servicer context.
-
-        Returns:
-            GetInventoryResponse with all orders.
-        """
-        async with get_session() as session:
-            orders = await PostgresOrderRepository(session).get_inventory()
+        """Return all orders as inventory."""
+        async with self._service() as service:
+            orders = await service.get_inventory()
         return store_pb2.GetInventoryResponse(orders=[_schema_to_proto_order(o) for o in orders])
 
     async def PlaceOrder(
@@ -76,15 +81,7 @@ class StoreServicer(store_pb2_grpc.StoreServiceServicer):
         request: store_pb2.PlaceOrderRequest,
         context: grpc.aio.ServicerContext,
     ) -> store_pb2.PlaceOrderResponse:
-        """Place a new order.
-
-        Args:
-            request: PlaceOrderRequest containing the order to create.
-            context: gRPC servicer context.
-
-        Returns:
-            PlaceOrderResponse with the created order.
-        """
+        """Place a new order."""
         o = request.order
         ship_date = None
         if o.HasField("ship_date"):
@@ -97,8 +94,11 @@ class StoreServicer(store_pb2_grpc.StoreServiceServicer):
             status=_PROTO_TO_ORDER_STATUS.get(o.status),
             complete=o.complete,
         )
-        async with get_session() as session:
-            order = await PostgresOrderRepository(session).create(create)
+        async with self._service() as service:
+            try:
+                order = await service.place_order(create)
+            except DomainError as exc:
+                await abort_for_domain_error(context, exc)
         return store_pb2.PlaceOrderResponse(order=_schema_to_proto_order(order))
 
     async def GetOrderById(
@@ -106,19 +106,12 @@ class StoreServicer(store_pb2_grpc.StoreServiceServicer):
         request: store_pb2.GetOrderByIdRequest,
         context: grpc.aio.ServicerContext,
     ) -> store_pb2.GetOrderByIdResponse:
-        """Get an order by ID.
-
-        Args:
-            request: GetOrderByIdRequest with the order ID.
-            context: gRPC servicer context.
-
-        Returns:
-            GetOrderByIdResponse with the order.
-        """
-        async with get_session() as session:
-            order = await PostgresOrderRepository(session).get(request.order_id)
-        if order is None:
-            await context.abort(grpc.StatusCode.NOT_FOUND, f"Order {request.order_id} not found")
+        """Get an order by ID."""
+        async with self._service() as service:
+            try:
+                order = await service.get_order(request.order_id)
+            except DomainError as exc:
+                await abort_for_domain_error(context, exc)
         return store_pb2.GetOrderByIdResponse(order=_schema_to_proto_order(order))
 
     async def DeleteOrder(
@@ -126,20 +119,10 @@ class StoreServicer(store_pb2_grpc.StoreServiceServicer):
         request: store_pb2.DeleteOrderRequest,
         context: grpc.aio.ServicerContext,
     ) -> store_pb2.DeleteOrderResponse:
-        """Delete an order by ID.
-
-        Args:
-            request: DeleteOrderRequest with the order ID.
-            context: gRPC servicer context.
-
-        Returns:
-            DeleteOrderResponse with confirmation.
-        """
-        async with get_session() as session:
+        """Delete an order by ID."""
+        async with self._service() as service:
             try:
-                await PostgresOrderRepository(session).delete(request.order_id)
-            except KeyError:
-                await context.abort(
-                    grpc.StatusCode.NOT_FOUND, f"Order {request.order_id} not found"
-                )
+                await service.delete_order(request.order_id)
+            except DomainError as exc:
+                await abort_for_domain_error(context, exc)
         return store_pb2.DeleteOrderResponse(message={"result": "ok"})

@@ -32,6 +32,7 @@ class RequestLoggingInterceptor(grpc.aio.ServerInterceptor):
     """Log each RPC request that reaches this server."""
 
     async def intercept_service(self, continuation, handler_call_details):
+        """Intercept an RPC call and add request/response logging for unary methods."""
         method = handler_call_details.method
         handler = await continuation(handler_call_details)
 
@@ -54,7 +55,12 @@ class RequestLoggingInterceptor(grpc.aio.ServerInterceptor):
 
                 elapsed_ms = (time.perf_counter() - start) * 1000
                 code = context.code() or grpc.StatusCode.OK
-                logger.info("RPC done: method=%s code=%s duration_ms=%.1f", method, code.name, elapsed_ms)
+                logger.info(
+                    "RPC done: method=%s code=%s duration_ms=%.1f",
+                    method,
+                    code.name,
+                    elapsed_ms,
+                )
                 return response
 
             return grpc.unary_unary_rpc_method_handler(
