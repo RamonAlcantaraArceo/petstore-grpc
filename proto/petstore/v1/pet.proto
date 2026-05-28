@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package petstore.v1;
+
+import "petstore/v1/common.proto";
+
+option go_package = "github.com/petstore/api/gen/petstore/v1;petstorev1";
+option java_multiple_files = true;
+option java_package = "com.petstore.v1";
+
+// --- Request / response messages ---
+
+message AddPetRequest {
+  // Pet to add. `id` is server-assigned and ignored on input.
+  Pet pet = 1;
+}
+message AddPetResponse {
+  Pet pet = 1;
+}
+
+message UpdatePetRequest {
+  // Pet to update. `id` is required.
+  Pet pet = 1;
+}
+message UpdatePetResponse {
+  Pet pet = 1;
+}
+
+message FindPetsByStatusRequest {
+  // Status filter. Leave unspecified to return all pets.
+  PetStatus status = 1;
+  // Offset (default 0).
+  int32 skip = 2;
+  // Page size, 1–100. Use 0 / unset for server default.
+  int32 limit = 3;
+}
+message FindPetsByStatusResponse {
+  repeated Pet pets = 1;
+}
+
+message FindPetsByTagsRequest {
+  repeated string tags = 1;
+}
+message FindPetsByTagsResponse {
+  repeated Pet pets = 1;
+}
+
+message GetPetByIdRequest {
+  int64 pet_id = 1;
+}
+message GetPetByIdResponse {
+  Pet pet = 1;
+}
+
+message UpdatePetWithFormRequest {
+  int64 pet_id = 1;
+  optional string name = 2;
+  optional string status = 3;
+}
+message UpdatePetWithFormResponse {
+  Pet pet = 1;
+}
+
+message DeletePetRequest {
+  int64 pet_id = 1;
+}
+message DeletePetResponse {
+  // Free-form confirmation key/value pairs (mirrors JSON map response).
+  map<string, string> message = 1;
+}
+
+message UploadFileRequest {
+  int64 pet_id = 1;
+  // Raw file bytes.
+  bytes file = 2;
+  optional string additional_metadata = 3;
+}
+message UploadFileResponse {
+  map<string, string> message = 1;
+}
+
+// Pet service mirrors /api/v1/pet/* endpoints.
+service PetService {
+  rpc AddPet(AddPetRequest) returns (AddPetResponse);
+  rpc UpdatePet(UpdatePetRequest) returns (UpdatePetResponse);
+  rpc FindPetsByStatus(FindPetsByStatusRequest) returns (FindPetsByStatusResponse);
+  rpc FindPetsByTags(FindPetsByTagsRequest) returns (FindPetsByTagsResponse);
+  rpc GetPetById(GetPetByIdRequest) returns (GetPetByIdResponse);
+  rpc UpdatePetWithForm(UpdatePetWithFormRequest) returns (UpdatePetWithFormResponse);
+  rpc DeletePet(DeletePetRequest) returns (DeletePetResponse);
+  rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+}

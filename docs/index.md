@@ -6,7 +6,7 @@ A Python gRPC service implementing a pet store API with health check endpoint.
 
 - **gRPC API** — High-performance RPC framework with Protocol Buffers
 - **Health Check** — Service status and build metadata endpoint
-- **Modern Python** — Built with Python 3.12, async/await, and type hints
+- **Modern Python** — Built with Python 3.14, async/await, and type hints
 - **Developer Experience** — Fast iteration with `uv`, ruff linting, and comprehensive tests
 - **Production Ready** — Multi-stage Docker build, CI/CD, and monitoring hooks
 
@@ -14,7 +14,7 @@ A Python gRPC service implementing a pet store API with health check endpoint.
 
 ### Prerequisites
 
-- Python 3.12+
+- Python 3.14+
 - [uv](https://docs.astral.sh/uv/) package manager
 
 ### Installation

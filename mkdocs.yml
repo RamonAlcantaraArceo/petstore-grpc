@@ -53,3 +53,6 @@ nav:
   - API Reference: grpc/grpc.md
   - gRPC Client:
     - Health Check: gRPC_client/health.md
+    - Pet Service: gRPC_client/pets.md
+    - Store Service: gRPC_client/store.md
+    - User Service: gRPC_client/user.md

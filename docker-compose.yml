@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   petstore-grpc:
     build:
@@ -8,7 +6,9 @@ services:
         BUILD_DATE: "${BUILD_DATE:-unknown}"
         GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
     ports:
-      - "50051:50051"
+      - "${HOST_GRPC_PORT:-50051}:50051"  # native gRPC
+      - "${HOST_GRPC_WEB_PORT:-8080}:8080"  # gRPC-Web via Envoy
+      - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901"  # Envoy admin UI
     environment:
       - MODE=prod
       - PORT=50051

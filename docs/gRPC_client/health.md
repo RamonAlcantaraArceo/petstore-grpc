@@ -1,19 +1,14 @@
-# gRPCUrl examples
+# Health Check
 
-Making use of vscode-grpc-client extension, you can test your gRPC server with the following
-commands:
+Use this command to confirm the server is reachable over gRPC and reflection is enabled.
 
-## Health correct
-
-```shell
+```bash
 grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 ```
 
 Expected response:
 
 ```json
-// Response:
-
 {
   "status": "SERVING",
   "mode": "dev",
@@ -25,11 +20,4 @@ Expected response:
 }
 ```
 
-## Health bad request
-
-```shell
-grpcurl -plaintext -d '{"body": "foo"}' localhost:50051 petstore.v1.Health/Check
-```
-
-The expected response is an error message available in the output tab of vscode-grpc-client
-extension.
+If you pass any fields, grpcurl will return a validation error because `HealthRequest` is empty.
