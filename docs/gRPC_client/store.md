@@ -1,8 +1,8 @@
 # Store Service grpcurl Samples
 
-The store service uses the DB-backed launch profile. Start the server with the VS Code
-configuration named `petstore-grpc: debug database`, or set `STORAGE_MODE=local` and a valid
-`DATABASE_URL` before running `uv run python -m petstore_grpc`.
+The store service uses the DB-backed launch profile. Start the server with the VS Code configuration
+named `petstore-grpc: debug database`, or set `STORAGE_MODE=local` and a valid `DATABASE_URL` before
+running `uv run python -m petstore_grpc`.
 
 ## Get inventory
 

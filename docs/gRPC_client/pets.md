@@ -52,7 +52,8 @@ grpcurl -plaintext -d '{"petId":"1"}' localhost:50051 petstore.v1.PetService/Del
 
 ## Upload file
 
-`UploadFile` is defined as a client-streaming RPC, but it is currently not implemented by the server.
+`UploadFile` is defined as a client-streaming RPC, but it is currently not implemented by the
+server.
 
 ## Notes
 

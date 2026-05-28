@@ -33,4 +33,3 @@ def get_memory_user_repo() -> MemoryUserRepository:
     if _memory_user_repo is None:
         _memory_user_repo = MemoryUserRepository()
     return _memory_user_repo
-

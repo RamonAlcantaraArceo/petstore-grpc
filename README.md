@@ -4,9 +4,9 @@ A Python gRPC service implementing a pet store API with health check endpoint.
 
 ## Shared core dependency
 
-This service consumes framework-agnostic domain and persistence code from `petstore_core`
-packaged inside the `petstore-api` dependency. gRPC request/response mapping and gRPC status
-translation stay in this repository.
+This service consumes framework-agnostic domain and persistence code from `petstore_core` packaged
+inside the `petstore-api` dependency. gRPC request/response mapping and gRPC status translation stay
+in this repository.
 
 ## Features
 
