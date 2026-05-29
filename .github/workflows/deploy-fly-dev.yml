@@ -44,11 +44,11 @@ jobs:
       # Create Fly.io app if it doesn't exist
       - name: Create App and Set Secrets
         run: |
-          if ! flyctl apps list | grep -q petstore-grpc-staging; then
-            flyctl apps create --name petstore-grpc-staging --auto-confirm
+          if ! flyctl apps list | grep -q petstore-grpc-dev; then
+            flyctl apps create --name petstore-grpc-dev --auto-confirm
           else
             flyctl apps list
-            echo "App petstore-grpc-staging already exists, skipping creation."
+            echo "App petstore-grpc-dev already exists, skipping creation."
           fi
 
           flyctl secrets set --stage API_KEY=${{ secrets.API_KEY }} DATABASE_POOLER_URL=${{ secrets.DATABASE_POOLER_URL }} DATABASE_URL=${{ secrets.DATABASE_URL }} -c .fly/staging/fly.toml
@@ -70,11 +70,11 @@ jobs:
 
           flyctl scale count 1 -y -c .fly/staging/fly.toml
 
-          if ! flyctl certs list -c .fly/staging/fly.toml | grep -q petstore-grpc-staging.ramon-alcantara.work; then
-            flyctl certs create petstore-grpc-staging.ramon-alcantara.work --app petstore-grpc-staging
+          if ! flyctl certs list -c .fly/staging/fly.toml | grep -q petstore-grpc-dev.ramon-alcantara.work; then
+            flyctl certs create petstore-grpc-dev.ramon-alcantara.work --app petstore-grpc-dev
 
           else
-            echo "App petstore-grpc-staging already has certificate defined, skipping creation."
+            echo "App petstore-grpc-dev already has certificate defined, skipping creation."
           fi
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
