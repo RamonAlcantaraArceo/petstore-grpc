@@ -12,10 +12,33 @@ env:
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-push-image:
+  prepare-release-metadata:
     runs-on: ubuntu-latest
     outputs:
       git_tag: ${{ steps.release.outputs.git_tag }}
+      package_version: ${{ steps.release.outputs.package_version }}
+      build_date: ${{ steps.release.outputs.build_date }}
+    permissions:
+      contents: read
+    steps:
+      - name: Derive release metadata
+        id: release
+        run: |
+          echo "git_tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          echo "package_version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
+  build-and-push-image:
+    needs: prepare-release-metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            platform_slug: linux-amd64
+          - platform: linux/arm64
+            platform_slug: linux-arm64
+    runs-on: ubuntu-latest
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
@@ -27,13 +50,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Derive release metadata
-        id: release
-        run: |
-          echo "git_tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          echo "package_version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
 
       # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
       - name: Log in to the Container registry
@@ -51,12 +67,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.release.outputs.git_tag }}
+            type=raw,value=${{ needs.prepare-release-metadata.outputs.git_tag }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.version=${{ steps.release.outputs.package_version }}
+            org.opencontainers.image.version=${{ needs.prepare-release-metadata.outputs.package_version }}
 
       # Add support for more platforms with QEMU (optional)
       # https://github.com/docker/setup-qemu-action
@@ -76,13 +92,15 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           # Dockerfile runtime stage already defines ARG VERSION, ARG BUILD_DATE,
           # and ARG GIT_SHA and maps them to OCI labels.
           build-args: |
-            VERSION=${{ steps.release.outputs.package_version }}
-            BUILD_DATE=${{ steps.release.outputs.build_date }}
+            VERSION=${{ needs.prepare-release-metadata.outputs.package_version }}
+            BUILD_DATE=${{ needs.prepare-release-metadata.outputs.build_date }}
             GIT_SHA=${{ github.sha }}
           annotations: |
             index:org.opencontainers.image.title=${{ github.event.repository.name }}
@@ -90,7 +108,20 @@ jobs:
             index:org.opencontainers.image.source=https://github.com/${{ github.repository }}
             manifest:org.opencontainers.image.title=${{ github.event.repository.name }}
             manifest:org.opencontainers.image.description=${{ github.event.repository.description }}
-          platforms: linux/amd64,linux/arm64
+      
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.push.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform_slug }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
       
       # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see [Using artifact attestations to establish provenance for builds](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds).
       - name: Generate artifact attestation
@@ -100,10 +131,68 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
+  merge-manifest:
+    name: Merge platform manifests
+    needs:
+      - prepare-release-metadata
+      - build-and-push-image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ needs.prepare-release-metadata.outputs.git_tag }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.prepare-release-metadata.outputs.package_version }}
+
+      - name: Download digest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Create and push multi-platform manifest
+        working-directory: /tmp/digests
+        run: |
+          tags='${{ steps.meta.outputs.json }}'
+          tag_args=""
+          while IFS= read -r tag; do
+            tag_args+=" -t ${tag}"
+          done < <(jq -r '.tags[]' <<< "$tags")
+
+          digest_refs=""
+          for digest in *; do
+            digest_refs+=" ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:${digest}"
+          done
+
+          docker buildx imagetools create ${tag_args} ${digest_refs}
+
   deploy-dev:
     name: Deploy Dev with published image tag
-    needs: build-and-push-image
+    needs:
+      - prepare-release-metadata
+      - merge-manifest
     uses: ./.github/workflows/deploy-fly-dev.yml
     with:
-      version: ${{ needs.build-and-push-image.outputs.git_tag }}
+      version: ${{ needs.prepare-release-metadata.outputs.git_tag }}
     secrets: inherit

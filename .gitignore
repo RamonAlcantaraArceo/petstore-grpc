@@ -51,3 +51,8 @@ site/
 # OS
 .DS_Store
 Thumbs.db
+
+# CLI runtime artifacts
+cli/logs/
+
+.env*

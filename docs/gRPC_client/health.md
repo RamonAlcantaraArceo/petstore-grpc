@@ -1,21 +1,39 @@
 # Health Check
 
-Use this command to confirm the server is reachable over gRPC and reflection is enabled.
+Use these commands to validate the DEV deployment at `https://petstore-grpc-dev.fly.dev`.
+
+Using `grpcurl` (recommended):
 
 ```bash
-grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
+grpcurl -d '{}' \
+  -proto proto/petstore/v1/health.proto \
+  petstore-grpc-dev.fly.dev:443 \
+  petstore.v1.Health/Check
 ```
 
-Expected response:
+Using `curl` with gRPC framing:
+
+```bash
+printf '\x00\x00\x00\x00\x00' | curl --http2 -i -X POST \
+  https://petstore-grpc-dev.fly.dev/petstore.v1.Health/Check \
+  -H 'content-type: application/grpc' \
+  -H 'te: trailers' \
+  --data-binary @-
+```
+
+`$'\x00...'` is not reliable for this because shells cannot pass NUL bytes as argv literals.
+Piping `printf` into `--data-binary @-` sends the required 5-byte gRPC frame correctly.
+
+Expected `grpcurl` response shape:
 
 ```json
 {
   "status": "SERVING",
-  "mode": "dev",
+  "mode": "prod",
   "details": {
     "version": "0.1.0",
-    "build_date": "unknown",
-    "git_commit_sha": "unknown"
+    "build_date": "<timestamp>",
+    "git_commit_sha": "<commit-sha>"
   }
 }
 ```

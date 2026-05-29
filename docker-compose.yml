@@ -12,4 +12,6 @@ services:
     environment:
       - MODE=prod
       - PORT=50051
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVOY_LOG_LEVEL=${ENVOY_LOG_LEVEL:-}
     restart: unless-stopped

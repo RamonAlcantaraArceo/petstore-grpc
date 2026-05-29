@@ -8,6 +8,7 @@ dependencies = [
   "grpcio-tools>=1.80.0",
   "grpcio-reflection>=1.80.0",
   "protobuf>=6.31.6",
+  "typer>=0.19.2",
   "petstore-api @ https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.2.0/petstore_api-0.2.0-py3-none-any.whl",
 ]
 
