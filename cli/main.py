@@ -200,7 +200,12 @@ def _grpc_call(ctx: AppContext, operation: str, request: Any, rpc: Any) -> dict[
             response = rpc(request, timeout=ctx.request_timeout)
             break
         except grpc.RpcError as exc:
-            details = {"code": exc.code().name, "details": exc.details()}
+            details = {
+                "code": exc.code().name,
+                "details": exc.details(),
+                "attempt": attempt + 1,
+                "max_attempts": ctx.max_retries + 1,
+            }
             can_retry = exc.code() is grpc.StatusCode.UNAVAILABLE and attempt < ctx.max_retries
             if can_retry:
                 retry_in_seconds = min(ctx.retry_backoff_seconds * (2**attempt), 10.0)
@@ -210,8 +215,6 @@ def _grpc_call(ctx: AppContext, operation: str, request: Any, rpc: Any) -> dict[
                     operation=operation,
                     payload={
                         **details,
-                        "attempt": attempt + 1,
-                        "max_attempts": ctx.max_retries + 1,
                         "retry_in_seconds": retry_in_seconds,
                     },
                 )

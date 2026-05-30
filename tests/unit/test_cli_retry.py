@@ -78,6 +78,34 @@ def test_grpc_call_retries_unavailable_and_logs_attempts(
     assert retry_entries[1]["payload"]["max_attempts"] == 3
 
 
+def test_grpc_call_logs_final_failed_attempt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Final failed attempt should also include attempt metadata in logs."""
+    monkeypatch.setattr("cli.main.time.sleep", lambda _: None)
+    log_file = tmp_path / "cli.log"
+    ctx = _ctx(log_file, max_retries=2, backoff=0.1)
+    request = health_pb2.HealthRequest()
+
+    def rpc(_: health_pb2.HealthRequest, timeout: float) -> health_pb2.HealthResponse:
+        raise FakeRpcError(grpc.StatusCode.UNAVAILABLE, "Connection refused")
+
+    with pytest.raises(typer.Exit):
+        _grpc_call(ctx, "health.check", request, rpc)
+
+    lines = [json.loads(line) for line in log_file.read_text().splitlines()]
+    failed_entries = [
+        line
+        for line in lines
+        if line["phase"] == "response" and line["payload"].get("code") == "UNAVAILABLE"
+    ]
+    assert len(failed_entries) == 3
+    assert failed_entries[0]["payload"]["attempt"] == 1
+    assert failed_entries[1]["payload"]["attempt"] == 2
+    assert failed_entries[2]["payload"]["attempt"] == 3
+    assert all(entry["payload"]["max_attempts"] == 3 for entry in failed_entries)
+
+
 def test_grpc_call_does_not_retry_non_unavailable(tmp_path: Path) -> None:
     """Non-UNAVAILABLE errors should fail immediately without retries."""
     log_file = tmp_path / "cli.log"
