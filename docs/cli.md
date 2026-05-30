@@ -2,10 +2,18 @@
 
 The repository includes a Typer-based CLI under `cli/` to call the API from the terminal.
 
+## Install
+
+```bash
+uv tool install .
+petstore-cli --help
+```
+
 ## Run
 
 ```bash
 uv run python -m cli --help
+petstore-cli --help
 ```
 
 ## Global options
@@ -25,6 +33,13 @@ uv run python -m cli --env dev --transport grpc pet add
 uv run python -m cli --env dev --transport grpc pet get 1
 uv run python -m cli --env dev --transport grpc pet list --status available --limit 20
 uv run python -m cli --env dev --transport grpc pet delete 1
+
+petstore-cli --env dev --transport grpc config
+petstore-cli --env dev --transport grpc health
+petstore-cli --env dev --transport grpc pet add
+petstore-cli --env dev --transport grpc pet get 1
+petstore-cli --env dev --transport grpc pet list --status available --limit 20
+petstore-cli --env dev --transport grpc pet delete 1
 ```
 
 ## Logging

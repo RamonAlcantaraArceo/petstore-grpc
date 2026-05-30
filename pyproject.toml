@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 petstore-grpc = "petstore_grpc.__main__:main"
+petstore-cli = "cli.main:run"
 
 [build-system]
 requires = ["hatchling"]
@@ -26,7 +27,7 @@ path = "src/petstore_grpc/__init__.py"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/petstore_grpc"]
+packages = ["src/petstore_grpc", "cli"]
 
 [dependency-groups]
 dev = [
