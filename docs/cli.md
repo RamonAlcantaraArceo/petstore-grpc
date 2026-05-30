@@ -24,7 +24,7 @@ petstore-grpc-cli --help
 - `--rest-base-url`: override base URL used for HTTP-framed gRPC calls
 - `--log-file`: local request/response log path (default `cli/logs/petstore_cli.log`)
 - `--request-timeout`: per-request timeout in seconds (default `60`)
-- `--max-retries`: retries for transient gRPC `UNAVAILABLE` errors (default `5`)
+- `--max-retries`: retries for transient transport errors (default `5`)
 - `--retry-backoff-seconds`: base delay for exponential retry backoff (default `1`)
 
 ## Commands

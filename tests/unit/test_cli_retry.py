@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from urllib.error import URLError
 
 import grpc
 import pytest
 import typer
-from cli.main import AppContext, Environment, Transport, _grpc_call, _setup_logger
+from cli.main import (
+    AppContext,
+    Environment,
+    Transport,
+    _grpc_call,
+    _grpc_http_unary_call,
+    _setup_logger,
+)
 
 from petstore_grpc.generated.petstore.v1 import health_pb2
 
@@ -122,3 +130,51 @@ def test_grpc_call_does_not_retry_non_unavailable(tmp_path: Path) -> None:
         _grpc_call(ctx, "health.check", request, rpc)
 
     assert attempts["count"] == 1
+
+
+def test_rest_call_retries_url_errors_and_logs_attempts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """REST transport should retry URLError failures and log each failed attempt."""
+    monkeypatch.setattr("cli.main.time.sleep", lambda _: None)
+    log_file = tmp_path / "cli.log"
+    ctx = _ctx(log_file, max_retries=2, backoff=0.1)
+    ctx = AppContext(
+        env=ctx.env,
+        transport=Transport.REST,
+        grpc_target=ctx.grpc_target,
+        rest_base_url=ctx.rest_base_url,
+        log_file=ctx.log_file,
+        logger=ctx.logger,
+        request_timeout=ctx.request_timeout,
+        max_retries=ctx.max_retries,
+        retry_backoff_seconds=ctx.retry_backoff_seconds,
+    )
+
+    attempts = {"count": 0}
+
+    def failing_urlopen(*_args: object, **_kwargs: object) -> object:
+        attempts["count"] += 1
+        raise URLError("Connection refused")
+
+    monkeypatch.setattr("cli.main.urlopen", failing_urlopen)
+
+    with pytest.raises(typer.Exit):
+        _grpc_http_unary_call(
+            ctx,
+            "health.check",
+            "/petstore.v1.Health/Check",
+            health_pb2.HealthRequest(),
+            health_pb2.HealthResponse,
+        )
+
+    assert attempts["count"] == 3
+    lines = [json.loads(line) for line in log_file.read_text().splitlines()]
+    failed_entries = [
+        line for line in lines if line["phase"] == "response" and "error" in line["payload"]
+    ]
+    assert len(failed_entries) == 3
+    assert failed_entries[0]["payload"]["attempt"] == 1
+    assert failed_entries[1]["payload"]["attempt"] == 2
+    assert failed_entries[2]["payload"]["attempt"] == 3
+    assert all(entry["payload"]["max_attempts"] == 3 for entry in failed_entries)

@@ -260,56 +260,93 @@ def _grpc_http_unary_call(
         payload={"method": "POST", "url": url, "request": _proto_to_dict(request_message)},
     )
     request = Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urlopen(request, timeout=30) as response:
-            response_body = response.read()
-            status_code = response.getcode()
-            grpc_status = response.headers.get("grpc-status", "")
-            grpc_message = response.headers.get("grpc-message", "")
-    except HTTPError as exc:
-        response_body = exc.read()
-        status_code = exc.code
-        grpc_status = exc.headers.get("grpc-status", "")
-        grpc_message = exc.headers.get("grpc-message", "")
-    except URLError as exc:
-        _log_event(
-            ctx,
-            phase="response",
-            operation=operation,
-            payload={"url": url, "error": str(exc.reason)},
-        )
-        _fail(f"REST call failed: {exc.reason}")
-
-    response_payload: dict[str, Any] = {}
-    metadata: dict[str, Any] = {
-        "http_status": status_code,
-        "grpc_status": grpc_status,
-        "grpc_message": grpc_message,
-    }
-    if metadata["grpc_status"] == "" and status_code == 200:
-        metadata["grpc_status"] = "0"
-
-    if len(response_body) >= 5 and response_body[0] == 0:
+    for attempt in range(ctx.max_retries + 1):
         try:
-            message_size = int.from_bytes(response_body[1:5], byteorder="big")
-            message_body = response_body[5 : 5 + message_size]
-            decoded = response_type.FromString(message_body)
-            response_payload = _proto_to_dict(decoded)
-        except Exception as exc:
-            metadata["decode_error"] = str(exc)
-            metadata["raw_hex"] = response_body.hex()
-    elif response_body:
-        metadata["raw_hex"] = response_body.hex()
+            with urlopen(request, timeout=ctx.request_timeout) as response:
+                response_body = response.read()
+                status_code = response.getcode()
+                grpc_status = response.headers.get("grpc-status", "")
+                grpc_message = response.headers.get("grpc-message", "")
+        except HTTPError as exc:
+            response_body = exc.read()
+            status_code = exc.code
+            grpc_status = exc.headers.get("grpc-status", "")
+            grpc_message = exc.headers.get("grpc-message", "")
+        except URLError as exc:
+            details = {
+                "url": url,
+                "error": str(exc.reason),
+                "attempt": attempt + 1,
+                "max_attempts": ctx.max_retries + 1,
+            }
+            can_retry = attempt < ctx.max_retries
+            if can_retry:
+                retry_in_seconds = min(ctx.retry_backoff_seconds * (2**attempt), 10.0)
+                _log_event(
+                    ctx,
+                    phase="response",
+                    operation=operation,
+                    payload={**details, "retry_in_seconds": retry_in_seconds},
+                )
+                time.sleep(retry_in_seconds)
+                continue
+            _log_event(ctx, phase="response", operation=operation, payload=details)
+            _fail(f"REST call failed: {exc.reason}")
 
-    _log_event(
-        ctx,
-        phase="response",
-        operation=operation,
-        payload={"metadata": metadata, "response": response_payload},
-    )
-    if metadata["grpc_status"] != "0":
+        response_payload: dict[str, Any] = {}
+        metadata: dict[str, Any] = {
+            "http_status": status_code,
+            "grpc_status": grpc_status,
+            "grpc_message": grpc_message,
+        }
+        if metadata["grpc_status"] == "" and status_code == 200:
+            metadata["grpc_status"] = "0"
+
+        if len(response_body) >= 5 and response_body[0] == 0:
+            try:
+                message_size = int.from_bytes(response_body[1:5], byteorder="big")
+                message_body = response_body[5 : 5 + message_size]
+                decoded = response_type.FromString(message_body)
+                response_payload = _proto_to_dict(decoded)
+            except Exception as exc:
+                metadata["decode_error"] = str(exc)
+                metadata["raw_hex"] = response_body.hex()
+        elif response_body:
+            metadata["raw_hex"] = response_body.hex()
+
+        if metadata["grpc_status"] == "0":
+            _log_event(
+                ctx,
+                phase="response",
+                operation=operation,
+                payload={"metadata": metadata, "response": response_payload},
+            )
+            return response_payload
+
+        details = {
+            "metadata": metadata,
+            "response": response_payload,
+            "attempt": attempt + 1,
+            "max_attempts": ctx.max_retries + 1,
+        }
+        is_transient = metadata["grpc_status"] == "14" or metadata["http_status"] in {502, 503, 504}
+        can_retry = is_transient and attempt < ctx.max_retries
+        if can_retry:
+            retry_in_seconds = min(ctx.retry_backoff_seconds * (2**attempt), 10.0)
+            _log_event(
+                ctx,
+                phase="response",
+                operation=operation,
+                payload={**details, "retry_in_seconds": retry_in_seconds},
+            )
+            time.sleep(retry_in_seconds)
+            continue
+
+        _log_event(ctx, phase="response", operation=operation, payload=details)
         _fail(f"REST gRPC call failed: {metadata['grpc_status']} - {metadata['grpc_message']}")
-    return response_payload
+
+    _fail("REST call failed: exhausted retries.")
+    raise RuntimeError("unreachable")
 
 
 def _ctx(typer_ctx: typer.Context) -> AppContext:
@@ -336,7 +373,7 @@ def main(
     ] = 60.0,
     max_retries: Annotated[
         int,
-        typer.Option(help="Retries for transient gRPC UNAVAILABLE errors."),
+        typer.Option(help="Retries for transient transport errors."),
     ] = 5,
     retry_backoff_seconds: Annotated[
         float,
