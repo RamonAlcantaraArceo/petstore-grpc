@@ -52,6 +52,9 @@ docker compose up --build
 
 # Test the endpoint
 grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
+
+# Open grpcui in your browser
+# http://localhost:8082
 ```
 
 ## CLI client
