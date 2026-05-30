@@ -1,0 +1,20 @@
+services:
+  petstore-grpc:
+    build:
+      context: .
+      args:
+        BUILD_DATE: "${BUILD_DATE:-unknown}"
+        GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
+    ports:
+      - "${HOST_GRPC_PORT:-50051}:50051"  # native gRPC
+      - "${HOST_GRPC_WEB_PORT:-8080}:8080"  # gRPC-Web via Envoy
+      - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901"  # Envoy admin UI
+    env_file:
+      - .env.staging
+    environment:
+      - MODE=${MODE:-staging}
+      - PORT=${PORT:-50051}
+      - STORAGE_MODE=${STORAGE_MODE:-cloud}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - ENVOY_LOG_LEVEL=${ENVOY_LOG_LEVEL:-}
+    restart: unless-stopped

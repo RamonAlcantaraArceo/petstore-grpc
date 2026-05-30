@@ -71,7 +71,7 @@ class AppContext:
 _DEFAULT_TARGETS: dict[Environment, EnvTargets] = {
     Environment.LOCAL: EnvTargets(
         grpc_target="localhost:50051",
-        rest_base_url="http://localhost:50051",
+        rest_base_url="http://localhost:8080",
         grpc_tls=False,
     ),
     Environment.DEV: EnvTargets(

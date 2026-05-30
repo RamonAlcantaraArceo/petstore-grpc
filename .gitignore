@@ -56,3 +56,7 @@ Thumbs.db
 cli/logs/
 
 .env*
+
+allure-results/
+allure-report/
+.allure/

@@ -32,7 +32,10 @@ packages = ["src/petstore_grpc"]
 dev = [
   "pytest>=9.0.3",
   "pytest-asyncio>=1.4.0",
+  "pytest-bdd>=8.1.0",
   "pytest-cov>=7.1.0",
+  "allure-pytest>=2.15.0",
+  "locust>=2.40.4",
   "ruff>=0.15.14",
   "mkdocs>=1.6.1",
   "mkdocs-material>=9.7.6",
@@ -59,3 +62,9 @@ convention = "google"
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --cov=petstore_grpc"
+markers = [
+  "system: system-level tests that exercise real network boundaries",
+  "e2e: end-to-end tests that run against live service endpoints",
+  "bdd: behavior-driven scenarios",
+  "load: load and performance-oriented test suites",
+]
