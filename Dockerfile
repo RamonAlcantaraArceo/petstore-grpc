@@ -45,7 +45,10 @@ COPY --from=builder /app/dist/*.whl /tmp/
 RUN python -m pip install --no-cache-dir /tmp/*.whl && rm -rf /tmp/*.whl
 
 COPY envoy.yaml /etc/envoy/envoy.yaml
+COPY grpcui-assets/ /app/grpcui-assets/
+COPY fly/start-grpcui.sh /usr/local/bin/start-grpcui.sh
 COPY fly/supervisord.conf /etc/supervisor/conf.d/petstore.conf
+RUN chmod +x /usr/local/bin/start-grpcui.sh
 
 EXPOSE 50051 8080
 

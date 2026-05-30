@@ -55,6 +55,9 @@ grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 
 # Open grpcui in your browser
 # http://localhost:8080/grpcui
+
+# Optional: force banner environment label (otherwise hostname auto-detects)
+# GRPCUI_ENV=dev|staging|prod|local docker compose up --build
 ```
 
 ## CLI client
