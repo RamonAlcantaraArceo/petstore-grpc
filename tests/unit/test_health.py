@@ -46,7 +46,7 @@ async def test_health_check_returns_mode():
 
 @pytest.mark.asyncio
 async def test_health_check_returns_version():
-    """Test that health check returns the package version."""
+    """Test that health check returns the package version by default."""
     servicer = HealthServicer()
     request = health_pb2.HealthRequest()
     context = MagicMock(spec=grpc.aio.ServicerContext)
@@ -55,6 +55,21 @@ async def test_health_check_returns_version():
 
     expected_version = importlib.metadata.version("petstore-grpc")
     assert response.details.version == expected_version
+
+
+@pytest.mark.asyncio
+async def test_health_check_uses_version_env_override():
+    """Test that health check prefers runtime VERSION environment variable."""
+    servicer = HealthServicer()
+    request = health_pb2.HealthRequest()
+    context = MagicMock(spec=grpc.aio.ServicerContext)
+
+    os.environ["VERSION"] = "v0.0.0-beta3"
+
+    response = await servicer.Check(request, context)
+    assert response.details.version == "v0.0.0-beta3"
+
+    os.environ.pop("VERSION", None)
 
 
 @pytest.mark.asyncio

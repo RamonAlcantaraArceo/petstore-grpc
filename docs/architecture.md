@@ -104,7 +104,8 @@ Hatchling reads `__version__` from `src/petstore_grpc/__init__.py`:
 
 - Single source of truth
 - Simple to update (just edit the string)
-- Runtime lookup via `importlib.metadata.version("petstore-grpc")`
+- Runtime health response prefers `VERSION` env var (deploy tag), falling back to
+  `importlib.metadata.version("petstore-grpc")`
 
 ### Build Metadata via Docker ARG/ENV
 

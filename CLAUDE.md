@@ -159,7 +159,8 @@ Version is defined in `src/petstore_grpc/__init__.py`:
 __version__ = "0.1.0"
 ```
 
-Hatchling reads this at build time. Runtime code accesses it via:
+Hatchling reads this at build time. Runtime health responses prefer the `VERSION` env var (deploy
+tag) and fall back to:
 
 ```python
 import importlib.metadata

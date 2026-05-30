@@ -72,7 +72,7 @@ fields.
 
 **Docstrings:** Google style, enforced by ruff. Line length: 100 characters.
 
-**Version:** Defined once in `src/petstore_grpc/__init__.py`. Runtime reads it via
-`importlib.metadata.version("petstore-grpc")`.
+**Version:** Defined once in `src/petstore_grpc/__init__.py`. Health responses prefer runtime
+`VERSION` (deploy tag) and fall back to `importlib.metadata.version("petstore-grpc")`.
 
 **Dependencies:** Add to `pyproject.toml`; run `uv sync`. Never edit `uv.lock` manually.
