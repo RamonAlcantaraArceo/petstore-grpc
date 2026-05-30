@@ -57,7 +57,7 @@ jobs:
             --config .fly/staging/fly.toml \
             --image ghcr.io/ramonalcantaraarceo/petstore-grpc:${{ steps.set_tag.outputs.tag }} \
             --remote-only \
-            --env GIT_SHA=${{ github.sha }} \
+            --env GIT_COMMIT_SHA=${{ github.sha }} \
             --env BUILD_DATE=${{ steps.vars.outputs.date }} \
             --env VERSION=${{ github.event.inputs.version }} \
             --debug \

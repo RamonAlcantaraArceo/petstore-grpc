@@ -83,3 +83,21 @@ async def test_health_check_returns_build_metadata():
     get_settings.cache_clear()
     os.environ.pop("BUILD_DATE", None)
     os.environ.pop("GIT_COMMIT_SHA", None)
+
+
+@pytest.mark.asyncio
+async def test_health_check_uses_git_sha_fallback():
+    """Test that health check falls back to legacy GIT_SHA environment variable."""
+    servicer = HealthServicer()
+    request = health_pb2.HealthRequest()
+    context = MagicMock(spec=grpc.aio.ServicerContext)
+
+    get_settings.cache_clear()
+    os.environ.pop("GIT_COMMIT_SHA", None)
+    os.environ["GIT_SHA"] = "legacy-sha"
+
+    response = await servicer.Check(request, context)
+    assert response.details.git_commit_sha == "legacy-sha"
+
+    get_settings.cache_clear()
+    os.environ.pop("GIT_SHA", None)

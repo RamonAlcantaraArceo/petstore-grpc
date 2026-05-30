@@ -79,11 +79,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Dockerfile runtime stage already defines ARG VERSION, ARG BUILD_DATE,
-          # and ARG GIT_SHA and maps them to OCI labels.
+          # and ARG GIT_COMMIT_SHA.
           build-args: |
             VERSION=${{ steps.release.outputs.package_version }}
             BUILD_DATE=${{ steps.release.outputs.build_date }}
-            GIT_SHA=${{ github.sha }}
+            GIT_COMMIT_SHA=${{ github.sha }}
           annotations: |
             index:org.opencontainers.image.title=${{ github.event.repository.name }}
             index:org.opencontainers.image.description=${{ github.event.repository.description }}

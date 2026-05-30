@@ -32,7 +32,8 @@ class Settings:
             mode=os.environ.get("MODE", "dev"),
             port=int(os.environ.get("PORT", "50051")),
             build_date=os.environ.get("BUILD_DATE", "unknown"),
-            git_commit_sha=os.environ.get("GIT_COMMIT_SHA", "unknown"),
+            git_commit_sha=os.environ.get("GIT_COMMIT_SHA")
+            or os.environ.get("GIT_SHA", "unknown"),
         )
 
 
