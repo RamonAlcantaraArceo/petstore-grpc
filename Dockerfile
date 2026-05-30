@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=envoyproxy/envoy:v1.31-latest /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=fullstorydev/grpcui:v1.4.3 /bin/grpcui /usr/local/bin/grpcui
 
 WORKDIR /app
 

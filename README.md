@@ -54,7 +54,7 @@ docker compose up --build
 grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 
 # Open grpcui in your browser
-# http://localhost:8082
+# http://localhost:8080/grpcui
 ```
 
 ## CLI client

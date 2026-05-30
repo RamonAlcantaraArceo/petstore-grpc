@@ -32,6 +32,10 @@ static_resources:
                         expose_headers: custom-header-1,grpc-status,grpc-message
                       routes:
                         - match:
+                            prefix: "/grpcui"
+                          route:
+                            cluster: grpcui_server
+                        - match:
                             prefix: "/petstore.v1."
                           route:
                             cluster: grpc_server
@@ -73,3 +77,16 @@ static_resources:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 50051
+    - name: grpcui_server
+      type: STATIC
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: grpcui_server
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8081
