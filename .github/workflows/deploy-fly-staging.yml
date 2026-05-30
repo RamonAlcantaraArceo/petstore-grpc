@@ -59,7 +59,7 @@ jobs:
             --remote-only \
             --env GIT_COMMIT_SHA=${{ github.sha }} \
             --env BUILD_DATE=${{ steps.vars.outputs.date }} \
-            --env VERSION=${{ github.event.inputs.version }} \
+            --env VERSION=${{ steps.set_tag.outputs.tag }} \
             --debug \
             --verbose
 

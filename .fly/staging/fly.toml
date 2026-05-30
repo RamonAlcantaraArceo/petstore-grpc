@@ -16,9 +16,12 @@ STORAGE_MODE = "cloud"
 auto_start_machines = true
 auto_stop_machines = true
 force_https = true
-internal_port = 8_000
+internal_port = 8_080
 min_machines_running = 0
 processes = [ "app" ]
+
+[http_service.http_options]
+h2_backend = true
 
 [[vm]]
 cpu_kind = "shared"
