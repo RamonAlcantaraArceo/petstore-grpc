@@ -6,6 +6,7 @@ import json
 import logging
 import random
 import string
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -66,6 +67,9 @@ class AppContext:
     rest_base_url: str
     log_file: Path
     logger: logging.Logger
+    request_timeout: float
+    max_retries: int
+    retry_backoff_seconds: float
 
 
 _DEFAULT_TARGETS: dict[Environment, EnvTargets] = {
@@ -190,13 +194,36 @@ def _grpc_call(ctx: AppContext, operation: str, request: Any, rpc: Any) -> dict[
         operation=operation,
         payload={"target": ctx.grpc_target, "request": request_payload},
     )
-    try:
-        response = rpc(request, timeout=30)
-    except grpc.RpcError as exc:
-        details = {"code": exc.code().name, "details": exc.details()}
-        _log_event(ctx, phase="response", operation=operation, payload=details)
-        _fail(f"gRPC call failed: {details['code']} - {details['details']}")
-        raise  # Unreachable, but keeps type-checkers happy.
+    response = None
+    for attempt in range(ctx.max_retries + 1):
+        try:
+            response = rpc(request, timeout=ctx.request_timeout)
+            break
+        except grpc.RpcError as exc:
+            details = {"code": exc.code().name, "details": exc.details()}
+            can_retry = exc.code() is grpc.StatusCode.UNAVAILABLE and attempt < ctx.max_retries
+            if can_retry:
+                retry_in_seconds = min(ctx.retry_backoff_seconds * (2**attempt), 10.0)
+                _log_event(
+                    ctx,
+                    phase="response",
+                    operation=operation,
+                    payload={
+                        **details,
+                        "attempt": attempt + 1,
+                        "max_attempts": ctx.max_retries + 1,
+                        "retry_in_seconds": retry_in_seconds,
+                    },
+                )
+                time.sleep(retry_in_seconds)
+                continue
+            _log_event(ctx, phase="response", operation=operation, payload=details)
+            _fail(f"gRPC call failed: {details['code']} - {details['details']}")
+            raise  # Unreachable, but keeps type-checkers happy.
+
+    if response is None:
+        _fail("gRPC call failed: exhausted retries.")
+        raise RuntimeError("unreachable")
 
     response_payload = _proto_to_dict(response)
     _log_event(
@@ -300,8 +327,27 @@ def main(
         Path,
         typer.Option(help="Log file path for request/response events."),
     ] = Path("cli/logs/petstore_cli.log"),
+    request_timeout: Annotated[
+        float,
+        typer.Option(help="Per-request timeout in seconds."),
+    ] = 60.0,
+    max_retries: Annotated[
+        int,
+        typer.Option(help="Retries for transient gRPC UNAVAILABLE errors."),
+    ] = 5,
+    retry_backoff_seconds: Annotated[
+        float,
+        typer.Option(help="Base backoff seconds for gRPC retry delays."),
+    ] = 1.0,
 ) -> None:
     """Initialize CLI context with defaults for env + transport."""
+    if request_timeout <= 0:
+        raise typer.BadParameter("--request-timeout must be greater than 0.")
+    if max_retries < 0:
+        raise typer.BadParameter("--max-retries must be 0 or greater.")
+    if retry_backoff_seconds <= 0:
+        raise typer.BadParameter("--retry-backoff-seconds must be greater than 0.")
+
     defaults = _DEFAULT_TARGETS[env]
     logger = _setup_logger(log_file)
     ctx.obj = AppContext(
@@ -311,6 +357,9 @@ def main(
         rest_base_url=rest_base_url or defaults.rest_base_url,
         log_file=log_file,
         logger=logger,
+        request_timeout=request_timeout,
+        max_retries=max_retries,
+        retry_backoff_seconds=retry_backoff_seconds,
     )
 
 
@@ -325,6 +374,9 @@ def show_config(ctx: typer.Context) -> None:
             "grpc_target": app_ctx.grpc_target,
             "rest_base_url": app_ctx.rest_base_url,
             "log_file": str(app_ctx.log_file),
+            "request_timeout": app_ctx.request_timeout,
+            "max_retries": app_ctx.max_retries,
+            "retry_backoff_seconds": app_ctx.retry_backoff_seconds,
         }
     )
 

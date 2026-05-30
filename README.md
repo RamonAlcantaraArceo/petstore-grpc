@@ -77,6 +77,9 @@ petstore-grpc-cli --env dev --transport grpc config
 uv run python -m cli --env dev --transport grpc health
 petstore-grpc-cli --env dev --transport grpc health
 
+# tolerate transient deploy restarts
+petstore-grpc-cli --request-timeout 120 --max-retries 8 health
+
 # add/get/list/delete pets
 uv run python -m cli --env dev --transport grpc pet add
 uv run python -m cli --env dev --transport grpc pet get 1
