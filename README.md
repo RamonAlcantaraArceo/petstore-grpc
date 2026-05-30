@@ -65,17 +65,17 @@ Both transports stay on the same environment host (for example, DEV uses
 ```bash
 # install as a global tool
 uv tool install .
-petstore-cli --help
+petstore-grpc-cli --help
 ```
 
 ```bash
 # show resolved endpoints
 uv run python -m cli --env dev --transport grpc config
-petstore-cli --env dev --transport grpc config
+petstore-grpc-cli --env dev --transport grpc config
 
 # check health
 uv run python -m cli --env dev --transport grpc health
-petstore-cli --env dev --transport grpc health
+petstore-grpc-cli --env dev --transport grpc health
 
 # add/get/list/delete pets
 uv run python -m cli --env dev --transport grpc pet add
