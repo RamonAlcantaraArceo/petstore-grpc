@@ -1,4 +1,4 @@
-app = "petstore-grpc-dev"
+app = "petstore-grpc-prod"
 primary_region = "iad"
 
 [build]
@@ -8,9 +8,9 @@ image = "ghcr.io/ramonalcantaraarceo/petstore-grpc:latest"
 strategy = "immediate"
 
 [env]
-APP_ENV = "dev"
-LOG_LEVEL = "INFO"
-STORAGE_MODE = "memory"
+  APP_ENV= "prod"
+  LOG_LEVEL = "WARNING"
+  STORAGE_MODE = "cloud"
 
 [http_service]
 auto_start_machines = true

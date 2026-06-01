@@ -48,4 +48,3 @@ def test_get_pet_round_trip(client: BasePetstoreClient) -> None:
 
     assert int(response.pet.id) == pet_id
     assert response.pet.name
-

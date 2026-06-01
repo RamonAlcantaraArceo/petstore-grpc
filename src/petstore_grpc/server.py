@@ -122,7 +122,7 @@ async def serve() -> None:
     except Exception:
         logger.exception("Failed to enable gRPC server reflection")
 
-    logger.info("Starting gRPC server on %s (mode=%s)", listen_addr, settings.mode)
+    logger.info("Starting gRPC server on %s (storage_mode=%s)", listen_addr, settings.storage_mode)
     await server.start()
 
     # Graceful shutdown handler

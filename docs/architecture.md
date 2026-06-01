@@ -61,7 +61,7 @@ Implements the `Health/Check` RPC:
 **Response fields:**
 
 - `status` — Always `"SERVING"` (future: readiness checks)
-- `mode` — Runtime mode from `MODE` env var (dev, prod, staging)
+- `storage_mode` — Storage mode from `STORAGE_MODE` env var (memory, local, cloud)
 - `details.version` — Package version via `importlib.metadata`
 - `details.build_date` — Build timestamp (injected by Docker, defaults to "unknown")
 - `details.git_commit_sha` — Git commit SHA (injected by Docker, defaults to "unknown")

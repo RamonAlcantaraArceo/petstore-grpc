@@ -21,7 +21,7 @@ async def test_server_startup_and_health_check(grpc_channel: grpc.aio.Channel):
     response = await stub.Check(request)
 
     assert response.status == "SERVING"
-    assert response.mode == "dev"  # Default mode
+    assert response.mode == "memory"  # Default mode
     assert response.details.version == importlib.metadata.version("petstore-grpc")
     assert isinstance(response.details.build_date, str)
     assert isinstance(response.details.git_commit_sha, str)

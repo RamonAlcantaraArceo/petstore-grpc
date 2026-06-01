@@ -27,10 +27,10 @@ Server starts on `localhost:50051` in `dev` mode.
 PORT=9090 uv run python -m petstore_grpc
 
 # Production mode
-MODE=prod uv run python -m petstore_grpc
+STORAGE_MODE=memory uv run python -m petstore_grpc
 
 # Multiple overrides
-MODE=staging PORT=8080 uv run python -m petstore_grpc
+STORAGE_MODE=cloud PORT=8080 uv run python -m petstore_grpc
 ```
 
 ## Running with Docker
@@ -108,7 +108,7 @@ docker compose down
 | Variable         | Default   | Description                       |
 | ---------------- | --------- | --------------------------------- |
 | `PORT`           | `50051`   | gRPC server port                  |
-| `MODE`           | `dev`     | Runtime mode (dev, prod, staging) |
+| `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
 | `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)     |
 | `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)      |
 

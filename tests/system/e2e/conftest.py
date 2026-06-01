@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 
 import pytest
 
@@ -31,7 +32,9 @@ def enabled_transports() -> list[str]:
 
 
 @pytest.fixture
-def client(request: pytest.FixtureRequest, e2e_targets: ClientTargets) -> BasePetstoreClient:
+def client(
+    request: pytest.FixtureRequest, e2e_targets: ClientTargets
+) -> Generator[BasePetstoreClient, None, None]:
     """Yield a transport-specific client and close it after the test."""
     if os.getenv("RUN_E2E") != "1":
         pytest.skip("Set RUN_E2E=1 to run system/e2e tests")
@@ -46,4 +49,3 @@ def client(request: pytest.FixtureRequest, e2e_targets: ClientTargets) -> BasePe
         pytest.skip(f"{transport} endpoint unavailable: {exc}")
     yield instance
     instance.close()
-

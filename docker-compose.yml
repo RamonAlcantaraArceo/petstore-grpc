@@ -10,8 +10,11 @@ services:
       - "${HOST_GRPC_WEB_PORT:-8080}:8080"  # gRPC-Web via Envoy
       - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901"  # Envoy admin UI
     environment:
-      - MODE=prod
-      - PORT=50051
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - ENVOY_LOG_LEVEL=${ENVOY_LOG_LEVEL:-}
+      STORAGE_MODE: memory
+      version: "0.0.0-local"
+      BUILD_DATE: ${BUILD_DATE:-today}
+      GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dead-beef}
+      PORT: 50051
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVOY_LOG_LEVEL: ${ENVOY_LOG_LEVEL:-}
     restart: unless-stopped

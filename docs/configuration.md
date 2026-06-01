@@ -4,9 +4,8 @@
 
 ### Server
 
-- `MODE`: Runtime mode (`dev` or `prod`).
 - `PORT`: gRPC server port (default `50051`).
-- `STORAGE_MODE`: Storage backend (`memory` or `postgres`).
+- `STORAGE_MODE`: Storage backend (`memory`, `postgres`, `cloud`).
 - `LOG_LEVEL`: Python app log level (for example `INFO`, `DEBUG`).
 
 ### Envoy (proxy sidecar)

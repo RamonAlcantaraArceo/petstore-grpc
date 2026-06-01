@@ -46,4 +46,3 @@ CORE_SCENARIOS: tuple[LoadScenario, ...] = (
         description="Exercise Envoy-framed gRPC read path under concurrent load.",
     ),
 )
-

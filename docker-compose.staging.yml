@@ -12,7 +12,6 @@ services:
     env_file:
       - .env.staging
     environment:
-      - MODE=${MODE:-staging}
       - PORT=${PORT:-50051}
       - STORAGE_MODE=${STORAGE_MODE:-cloud}
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}

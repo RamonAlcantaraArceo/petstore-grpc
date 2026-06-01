@@ -62,7 +62,7 @@ convention = "google"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --cov=petstore_grpc"
+addopts = "-ra --strict-markers --cov=petstore_grpc --cov-report="
 markers = [
   "system: system-level tests that exercise real network boundaries",
   "e2e: end-to-end tests that run against live service endpoints",

@@ -33,15 +33,13 @@ async def test_health_check_returns_mode():
 
     # Clear the settings cache to pick up environment
     get_settings.cache_clear()
-    os.environ["MODE"] = "test"
 
     response = await servicer.Check(request, context)
 
-    assert response.mode == "test"
+    assert response.mode == "memory"
 
     # Cleanup
     get_settings.cache_clear()
-    os.environ.pop("MODE", None)
 
 
 @pytest.mark.asyncio

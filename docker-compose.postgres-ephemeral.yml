@@ -26,9 +26,11 @@ services:
       - "${HOST_GRPC_WEB_PORT:-8080}:8080" # gRPC-Web via Envoy
       - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901" # Envoy admin UI
     environment:
-      MODE: "${MODE:-staging}"
       PORT: 50051
       STORAGE_MODE: "${STORAGE_MODE:-postgres}"
+      version: "0.0.0-local"
+      BUILD_DATE: ${BUILD_DATE:-today}
+      GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dead-beef}
       DATABASE_URL: "${DATABASE_URL:-postgresql+asyncpg://petstore:petstore@postgres:5432/petstore}"
       DATABASE_POOLER_URL: "${DATABASE_POOLER_URL:-postgresql+asyncpg://petstore:petstore@postgres:5432/petstore}"
       SEED_DATASET: "${SEED_DATASET:-mixed_v2}"

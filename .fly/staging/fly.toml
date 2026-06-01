@@ -9,7 +9,7 @@ strategy = "immediate"
 
 [env]
 APP_ENV = "staging"
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = "INFO"
 STORAGE_MODE = "cloud"
 
 [http_service]

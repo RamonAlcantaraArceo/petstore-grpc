@@ -10,6 +10,7 @@ mkdir -p src/petstore_grpc/generated
 # Generate Python stubs for all service protos
 uv run python -m grpc_tools.protoc \
   --proto_path=proto \
+  --pyi_out=src/petstore_grpc/generated \
   --python_out=src/petstore_grpc/generated \
   --grpc_python_out=src/petstore_grpc/generated \
   proto/petstore/v1/common.proto \

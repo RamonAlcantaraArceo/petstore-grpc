@@ -21,14 +21,14 @@ The server reads configuration from environment variables:
 | Variable         | Default   | Description                       |
 | ---------------- | --------- | --------------------------------- |
 | `PORT`           | `50051`   | gRPC server port                  |
-| `MODE`           | `dev`     | Runtime mode (dev, prod, staging) |
+| `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
 | `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)   |
 | `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)    |
 
 Example with custom configuration:
 
 ```bash
-MODE=staging PORT=9090 uv run python -m petstore_grpc
+STORAGE_MODE=cloud PORT=9090 uv run python -m petstore_grpc
 ```
 
 ## Docker
@@ -91,11 +91,11 @@ Expected response:
 ```json
 {
   "status": "SERVING",
-  "mode": "dev",
+  "mode": "memory",
   "details": {
-    "version": "0.1.0",
-    "buildDate": "unknown",
-    "gitCommitSha": "unknown"
+    "version": "0.0.0-local",
+    "buildDate": "today",
+    "gitCommitSha": "dead-beef"
   }
 }
 ```

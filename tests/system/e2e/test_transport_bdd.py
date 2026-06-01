@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 
 import allure
 import pytest
@@ -17,13 +18,13 @@ from tests.system.e2e.conftest import _parse_transports
 def transport_client(
     transport: str,
     e2e_targets: ClientTargets,
-) -> BasePetstoreClient:
+) -> Generator[BasePetstoreClient, None, None]:
     """Create per-scenario client based on Scenario Outline transport."""
     if os.getenv("RUN_E2E") != "1":
         pytest.skip("Set RUN_E2E=1 to run system/e2e tests")
 
     if transport not in _parse_transports():
-        pytest.skip(f"Transport {transport!r} not enabled in E2E_TRANSPORTS")
+        pytest.fail(f"Transport {transport!r} not enabled in E2E_TRANSPORTS")
 
     client = create_client(transport, e2e_targets)
     try:

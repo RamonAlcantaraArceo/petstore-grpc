@@ -37,7 +37,7 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
 
         response = health_pb2.HealthResponse(
             status="SERVING",
-            mode=settings.mode,
+            mode=settings.storage_mode,
             details=health_pb2.HealthResponse.Details(
                 version=version,
                 build_date=settings.build_date,

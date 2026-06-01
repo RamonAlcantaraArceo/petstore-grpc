@@ -26,7 +26,6 @@ ARG GIT_COMMIT_SHA=unknown
 
 ENV BUILD_DATE=${BUILD_DATE}
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
-ENV MODE=prod
 ENV PORT=50051
 
 # Install supervisord; copy Envoy binary from the official image
