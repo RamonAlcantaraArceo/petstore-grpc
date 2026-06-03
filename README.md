@@ -48,6 +48,9 @@ grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 
 ```bash
 # Build and run with docker compose
+VERSION=v1.2.3 docker compose up --build
+
+# Or let the local build fall back to the default image tag
 docker compose up --build
 
 # Test the endpoint

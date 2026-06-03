@@ -3,6 +3,7 @@ services:
     build:
       context: .
       args:
+        VERSION: "${VERSION:-local}"
         BUILD_DATE: "${BUILD_DATE:-unknown}"
         GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
     ports:
@@ -11,7 +12,7 @@ services:
       - "${HOST_ENVOY_ADMIN_PORT:-9901}:9901"  # Envoy admin UI
     environment:
       STORAGE_MODE: memory
-      version: "0.0.0-local"
+      VERSION: "${VERSION:-local}"
       BUILD_DATE: ${BUILD_DATE:-today}
       GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dead-beef}
       PORT: 50051

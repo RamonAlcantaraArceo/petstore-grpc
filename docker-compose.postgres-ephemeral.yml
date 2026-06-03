@@ -16,6 +16,7 @@ services:
     build:
       context: .
       args:
+        VERSION: "${VERSION:-local}"
         BUILD_DATE: "${BUILD_DATE:-unknown}"
         GIT_COMMIT_SHA: "${GIT_COMMIT_SHA:-unknown}"
     depends_on:
@@ -28,7 +29,7 @@ services:
     environment:
       PORT: 50051
       STORAGE_MODE: "${STORAGE_MODE:-postgres}"
-      version: "0.0.0-local"
+      VERSION: "${VERSION:-local}"
       BUILD_DATE: ${BUILD_DATE:-today}
       GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dead-beef}
       DATABASE_URL: "${DATABASE_URL:-postgresql+asyncpg://petstore:petstore@postgres:5432/petstore}"

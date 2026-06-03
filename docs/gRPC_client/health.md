@@ -31,7 +31,7 @@ Expected `grpcurl` response shape:
   "status": "SERVING",
   "mode": "prod",
   "details": {
-    "version": "0.1.0",
+    "version": "v1.2.3",
     "build_date": "<timestamp>",
     "git_commit_sha": "<commit-sha>"
   }

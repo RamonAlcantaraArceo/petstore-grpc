@@ -12,26 +12,13 @@ Use this skill when:
 
 ## How Versioning Works
 
-Version is stored in `src/petstore_grpc/__init__.py`:
-
-```python
-__version__ = "0.1.0"
-```
-
-- Hatchling reads this at build time
-- Runtime code accesses via `importlib.metadata.version("petstore-grpc")`
-- Git tags should match the version (e.g., `v0.1.0`)
+- Version is injected at image build/deploy time through `VERSION`
+- Git tags should match the released image tag (e.g., `v0.1.0`)
+- Runtime code reads `VERSION` first and falls back to package metadata outside containers
 
 ## Steps to Bump Version
 
-### 1. Edit Version String
-
-```python
-# In src/petstore_grpc/__init__.py
-__version__ = "0.2.0"  # Increment as needed
-```
-
-### 2. Update Changelog (if present)
+### 1. Update Changelog (if present)
 
 ```markdown
 # In CHANGELOG.md
@@ -47,14 +34,14 @@ __version__ = "0.2.0"  # Increment as needed
 - Bug Y
 ```
 
-### 3. Commit Changes
+### 2. Commit Changes
 
 ```bash
-git add src/petstore_grpc/__init__.py CHANGELOG.md
+git add CHANGELOG.md
 git commit -m "Bump version to 0.2.0"
 ```
 
-### 4. Create Git Tag
+### 3. Create Git Tag
 
 ```bash
 git tag -a v0.2.0 -m "Release v0.2.0"
@@ -85,12 +72,8 @@ This can be automated with a script:
 
 NEW_VERSION=$1
 
-# Update __init__.py
-sed -i "s/__version__ = .*/__version__ = \"${NEW_VERSION}\"/" \
-  src/petstore_grpc/__init__.py
-
 # Commit and tag
-git add src/petstore_grpc/__init__.py
+git add CHANGELOG.md
 git commit -m "Bump version to ${NEW_VERSION}"
 git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
 
@@ -106,23 +89,22 @@ bash scripts/bump_version.sh 0.2.0
 
 ## Verification
 
-After bumping, verify the version is correct:
+After bumping, verify the deployed image reports the new tag:
 
 ```bash
-# Install and check
-uv sync
-uv run python -c "import importlib.metadata; print(importlib.metadata.version('petstore-grpc'))"
+VERSION=v0.2.0 docker compose build
+VERSION=v0.2.0 docker compose up -d
+grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 ```
 
-Expected output: `0.2.0`
+Expected output: `details.version == "v0.2.0"`
 
 ## Release Checklist
 
-1. [ ] Update version in `src/petstore_grpc/__init__.py`
-2. [ ] Update `CHANGELOG.md` (if present)
-3. [ ] Run tests: `uv run pytest`
-4. [ ] Commit changes: `git commit -m "Bump version to X.Y.Z"`
-5. [ ] Create tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
-6. [ ] Push: `git push origin main --tags`
-7. [ ] Verify CI passes
-8. [ ] (Future) Publish to PyPI: `uv build && uv publish`
+1. [ ] Update `CHANGELOG.md` (if present)
+1. [ ] Run tests: `uv run pytest`
+1. [ ] Commit changes: `git commit -m "Release vX.Y.Z"`
+1. [ ] Create tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+1. [ ] Build and deploy with `VERSION=vX.Y.Z`
+1. [ ] Push: `git push origin main --tags`
+1. [ ] Verify CI passes

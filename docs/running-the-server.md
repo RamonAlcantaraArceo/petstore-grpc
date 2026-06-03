@@ -22,6 +22,7 @@ The server reads configuration from environment variables:
 | ---------------- | --------- | --------------------------------- |
 | `PORT`           | `50051`   | gRPC server port                  |
 | `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
+| `VERSION`        | `local`   | Image/runtime version              |
 | `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)   |
 | `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)    |
 
@@ -57,6 +58,7 @@ To inject build metadata (timestamp and git commit):
 
 ```bash
 docker compose build \
+  --build-arg VERSION=$(git describe --tags --always --dirty) \
   --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --build-arg GIT_COMMIT_SHA=$(git rev-parse HEAD)
 
@@ -93,7 +95,7 @@ Expected response:
   "status": "SERVING",
   "mode": "memory",
   "details": {
-    "version": "0.0.0-local",
+    "version": "v1.2.3",
     "buildDate": "today",
     "gitCommitSha": "dead-beef"
   }

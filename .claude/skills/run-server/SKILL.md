@@ -53,9 +53,10 @@ docker compose down
 
 ### With Build Metadata
 
-Inject build timestamp and git commit:
+Inject the release tag, build timestamp, and git commit:
 
 ```bash
+export VERSION=$(git describe --tags --always --dirty)
 export BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 export GIT_COMMIT_SHA=$(git rev-parse HEAD)
 docker compose up --build
@@ -84,7 +85,7 @@ Expected response:
   "status": "SERVING",
   "mode": "dev",
   "details": {
-    "version": "0.1.0",
+    "version": "v1.2.3",
     "buildDate": "unknown",
     "gitCommitSha": "unknown"
   }

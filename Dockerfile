@@ -4,6 +4,10 @@ FROM python:3.14-slim AS builder
 # Set working directory
 WORKDIR /app
 
+# Build metadata arguments
+ARG VERSION=local
+ENV VERSION=${VERSION}
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     && python -m pip install --no-cache-dir uv \
     && rm -rf /var/lib/apt/lists/*
@@ -21,9 +25,12 @@ RUN uv sync --frozen --no-dev && \
 FROM python:3.14-slim
 
 # Build metadata arguments
+ARG VERSION=local
 ARG BUILD_DATE=unknown
 ARG GIT_COMMIT_SHA=unknown
 
+LABEL org.opencontainers.image.version=${VERSION}
+ENV VERSION=${VERSION}
 ENV BUILD_DATE=${BUILD_DATE}
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
 ENV PORT=50051
