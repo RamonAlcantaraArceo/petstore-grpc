@@ -839,7 +839,7 @@ wheels = [
 [[package]]
 name = "petstore-core"
 version = "0.0.0"
-source = { url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0-beta0/petstore_core-0.0.0-py3-none-any.whl" }
+source = { url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0/petstore_core-0.0.0-py3-none-any.whl" }
 dependencies = [
     { name = "asyncpg" },
     { name = "pydantic" },
@@ -848,7 +848,7 @@ dependencies = [
     { name = "structlog" },
 ]
 wheels = [
-    { url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0-beta0/petstore_core-0.0.0-py3-none-any.whl", hash = "sha256:0871d736719ae63a9f1c176a17093a6c58bbef2e77f37a0c18e29b4e1cf97801" },
+    { url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0/petstore_core-0.0.0-py3-none-any.whl", hash = "sha256:89c058da4dca503cb092f16c503e2a48a8ebd58ee2fc1d6e6b9cec9a74cca8c8" },
 ]
 
 [package.metadata]
@@ -891,7 +891,7 @@ requires-dist = [
     { name = "grpcio", specifier = ">=1.80.0" },
     { name = "grpcio-reflection", specifier = ">=1.80.0" },
     { name = "grpcio-tools", specifier = ">=1.80.0" },
-    { name = "petstore-core", url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0-beta0/petstore_core-0.0.0-py3-none-any.whl" },
+    { name = "petstore-core", url = "https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0/petstore_core-0.0.0-py3-none-any.whl" },
     { name = "protobuf", specifier = ">=6.31.6" },
     { name = "typer", specifier = ">=0.19.2" },
 ]
