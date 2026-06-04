@@ -48,11 +48,55 @@ grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 
 ```bash
 # Build and run with docker compose
+VERSION=v1.2.3 docker compose up --build
+
+# Or let the local build fall back to the default image tag
 docker compose up --build
 
 # Test the endpoint
 grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
+
+# Open grpcui in your browser
+# http://localhost:8080/grpcui
+
+# Optional: force banner environment label (otherwise hostname auto-detects)
+# GRPCUI_ENV=dev|staging|prod|local docker compose up --build
 ```
+
+## CLI client
+
+A Typer CLI is available under `cli/` with built-in environment defaults (`local`, `dev`, `staging`)
+and transport selection (`grpc`, `rest`).
+
+Both transports stay on the same environment host (for example, DEV uses
+`petstore-grpc-dev.fly.dev`).
+
+```bash
+# install as a global tool
+uv tool install .
+petstore-grpc-cli --help
+```
+
+```bash
+# show resolved endpoints
+uv run python -m cli --env dev --transport grpc config
+petstore-grpc-cli --env dev --transport grpc config
+
+# check health
+uv run python -m cli --env dev --transport grpc health
+petstore-grpc-cli --env dev --transport grpc health
+
+# tolerate transient deploy restarts
+petstore-grpc-cli --request-timeout 120 --max-retries 8 health
+
+# add/get/list/delete pets
+uv run python -m cli --env dev --transport grpc pet add
+uv run python -m cli --env dev --transport grpc pet get 1
+uv run python -m cli --env dev --transport grpc pet list --status available
+uv run python -m cli --env dev --transport grpc pet delete 1
+```
+
+All CLI requests/responses are logged to `cli/logs/petstore_cli.log` (override with `--log-file`).
 
 ## Development
 
@@ -92,6 +136,15 @@ The repository ships with an [Envoy](https://www.envoyproxy.io/) sidecar that ex
 `docker compose up` starts both the Python gRPC server (`:50051`) and Envoy (`:8080`). Envoy
 translates browser gRPC-Web requests into native gRPC and forwards only the `petstore.v1.Health/*`
 route to the upstream server.
+
+To enable proxy-level debug logs locally, run:
+
+```bash
+LOG_LEVEL=DEBUG docker compose up --build
+```
+
+This sets Python server logs to debug and also raises Envoy log level to debug. Envoy access logs
+are emitted to container stdout so you can see the HTTP/gRPC forwarding layer for each request.
 
 ### Generate the TypeScript client
 

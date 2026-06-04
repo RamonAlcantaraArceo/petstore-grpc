@@ -153,20 +153,15 @@ After changes, always:
 
 ### Versioning
 
-Version is defined in `src/petstore_grpc/__init__.py`:
+Version is defined when the container image is assembled:
 
-```python
-__version__ = "0.1.0"
-```
+- Pass `VERSION` into Docker builds and deployment jobs
+- The runtime health endpoint reads `VERSION` first
+- Local, non-container runs fall back to `importlib.metadata.version("petstore-grpc")`
+- Keep release versions out of source files so the image tag remains the source of truth
 
-Hatchling reads this at build time. Runtime code accesses it via:
-
-```python
-import importlib.metadata
-version = importlib.metadata.version("petstore-grpc")
-```
-
-To bump version: Edit `__version__` in `__init__.py` and create a git tag.
+To release a new version: create a git tag, build the image with that tag as `VERSION`, and deploy
+that image.
 
 ### Dependency Management
 

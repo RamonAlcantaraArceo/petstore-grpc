@@ -8,30 +8,36 @@ dependencies = [
   "grpcio-tools>=1.80.0",
   "grpcio-reflection>=1.80.0",
   "protobuf>=6.31.6",
-  "petstore-api @ https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.2.0/petstore_api-0.2.0-py3-none-any.whl",
+  "typer>=0.19.2",
+  "petstore-core @ https://github.com/RamonAlcantaraArceo/petstore-api/releases/download/v0.3.0-beta0/petstore_core-0.0.0-py3-none-any.whl",
 ]
 
 [project.scripts]
 petstore-grpc = "petstore_grpc.__main__:main"
+petstore-grpc-cli = "cli.main:run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "src/petstore_grpc/__init__.py"
+source = "code"
+path = "src/petstore_grpc/_version.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/petstore_grpc"]
+packages = ["src/petstore_grpc", "cli"]
 
 [dependency-groups]
 dev = [
   "pytest>=9.0.3",
   "pytest-asyncio>=1.4.0",
+  "pytest-bdd>=8.1.0",
   "pytest-cov>=7.1.0",
+  "allure-pytest>=2.15.0",
+  "locust>=2.40.4",
   "ruff>=0.15.14",
   "mkdocs>=1.6.1",
   "mkdocs-material>=9.7.6",
@@ -57,4 +63,10 @@ convention = "google"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --cov=petstore_grpc"
+addopts = "-ra --strict-markers --cov=petstore_grpc --cov-report="
+markers = [
+  "system: system-level tests that exercise real network boundaries",
+  "e2e: end-to-end tests that run against live service endpoints",
+  "bdd: behavior-driven scenarios",
+  "load: load and performance-oriented test suites",
+]

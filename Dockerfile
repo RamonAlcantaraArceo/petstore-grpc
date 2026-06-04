@@ -1,13 +1,15 @@
 # Stage 1: Builder
 FROM python:3.14-slim AS builder
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
 # Set working directory
 WORKDIR /app
 
+# Build metadata arguments
+ARG VERSION=local
+ENV VERSION=${VERSION}
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    && python -m pip install --no-cache-dir uv \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -23,12 +25,14 @@ RUN uv sync --frozen --no-dev && \
 FROM python:3.14-slim
 
 # Build metadata arguments
+ARG VERSION=local
 ARG BUILD_DATE=unknown
 ARG GIT_COMMIT_SHA=unknown
 
+LABEL org.opencontainers.image.version=${VERSION}
+ENV VERSION=${VERSION}
 ENV BUILD_DATE=${BUILD_DATE}
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
-ENV MODE=prod
 ENV PORT=50051
 
 # Install supervisord; copy Envoy binary from the official image
@@ -36,6 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=envoyproxy/envoy:v1.31-latest /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=fullstorydev/grpcui:v1.4.3 /bin/grpcui /usr/local/bin/grpcui
 
 WORKDIR /app
 
@@ -46,7 +51,10 @@ COPY --from=builder /app/dist/*.whl /tmp/
 RUN python -m pip install --no-cache-dir /tmp/*.whl && rm -rf /tmp/*.whl
 
 COPY envoy.yaml /etc/envoy/envoy.yaml
+COPY grpcui-assets/ /app/grpcui-assets/
+COPY fly/start-grpcui.sh /usr/local/bin/start-grpcui.sh
 COPY fly/supervisord.conf /etc/supervisor/conf.d/petstore.conf
+RUN chmod +x /usr/local/bin/start-grpcui.sh
 
 EXPOSE 50051 8080
 

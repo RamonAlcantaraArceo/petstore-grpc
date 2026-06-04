@@ -7,10 +7,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.0.0] - 2026-06-01
+
 ### Added
 
 - Initial petstore-grpc service with Python gRPC server
-- Health check endpoint implementing gRPC Health Checking Protocol
+- Health service implementation
+- Pet service implementation
+- Order service implementation
 - Envoy proxy integration for gRPC-Web support
 - Docker Compose setup with multi-container architecture
 - Build metadata (build date and git commit SHA) exposed via Health endpoint

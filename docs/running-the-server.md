@@ -18,17 +18,18 @@ This starts the server on `localhost:50051` in development mode.
 
 The server reads configuration from environment variables:
 
-| Variable         | Default   | Description                       |
-| ---------------- | --------- | --------------------------------- |
-| `PORT`           | `50051`   | gRPC server port                  |
-| `MODE`           | `dev`     | Runtime mode (dev, prod, staging) |
-| `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)   |
-| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)    |
+| Variable         | Default   | Description                               |
+| ---------------- | --------- | ----------------------------------------- |
+| `PORT`           | `50051`   | gRPC server port                          |
+| `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
+| `VERSION`        | `local`   | Image/runtime version                     |
+| `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)           |
+| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)            |
 
 Example with custom configuration:
 
 ```bash
-MODE=staging PORT=9090 uv run python -m petstore_grpc
+STORAGE_MODE=cloud PORT=9090 uv run python -m petstore_grpc
 ```
 
 ## Docker
@@ -57,6 +58,7 @@ To inject build metadata (timestamp and git commit):
 
 ```bash
 docker compose build \
+  --build-arg VERSION=$(git describe --tags --always --dirty) \
   --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --build-arg GIT_COMMIT_SHA=$(git rev-parse HEAD)
 
@@ -91,11 +93,11 @@ Expected response:
 ```json
 {
   "status": "SERVING",
-  "mode": "dev",
+  "mode": "memory",
   "details": {
-    "version": "0.1.0",
-    "buildDate": "unknown",
-    "gitCommitSha": "unknown"
+    "version": "v1.2.3",
+    "buildDate": "today",
+    "gitCommitSha": "dead-beef"
   }
 }
 ```

@@ -27,10 +27,10 @@ Server starts on `localhost:50051` in `dev` mode.
 PORT=9090 uv run python -m petstore_grpc
 
 # Production mode
-MODE=prod uv run python -m petstore_grpc
+STORAGE_MODE=memory uv run python -m petstore_grpc
 
 # Multiple overrides
-MODE=staging PORT=8080 uv run python -m petstore_grpc
+STORAGE_MODE=cloud PORT=8080 uv run python -m petstore_grpc
 ```
 
 ## Running with Docker
@@ -53,9 +53,10 @@ docker compose down
 
 ### With Build Metadata
 
-Inject build timestamp and git commit:
+Inject the release tag, build timestamp, and git commit:
 
 ```bash
+export VERSION=$(git describe --tags --always --dirty)
 export BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 export GIT_COMMIT_SHA=$(git rev-parse HEAD)
 docker compose up --build
@@ -84,7 +85,7 @@ Expected response:
   "status": "SERVING",
   "mode": "dev",
   "details": {
-    "version": "0.1.0",
+    "version": "v1.2.3",
     "buildDate": "unknown",
     "gitCommitSha": "unknown"
   }
@@ -105,12 +106,12 @@ docker compose down
 
 ## Configuration Reference
 
-| Variable         | Default   | Description                       |
-| ---------------- | --------- | --------------------------------- |
-| `PORT`           | `50051`   | gRPC server port                  |
-| `MODE`           | `dev`     | Runtime mode (dev, prod, staging) |
-| `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)     |
-| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)      |
+| Variable         | Default   | Description                               |
+| ---------------- | --------- | ----------------------------------------- |
+| `PORT`           | `50051`   | gRPC server port                          |
+| `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
+| `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)             |
+| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)              |
 
 ## Troubleshooting
 

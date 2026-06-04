@@ -61,10 +61,11 @@ Implements the `Health/Check` RPC:
 **Response fields:**
 
 - `status` — Always `"SERVING"` (future: readiness checks)
-- `mode` — Runtime mode from `MODE` env var (dev, prod, staging)
-- `details.version` — Package version via `importlib.metadata`
-- `details.build_date` — Build timestamp (injected by Docker, defaults to "unknown")
-- `details.git_commit_sha` — Git commit SHA (injected by Docker, defaults to "unknown")
+- `storage_mode` — Storage mode from `STORAGE_MODE` env var (memory, local, cloud)
+- `details.version` — Image/runtime version from `VERSION` (build/deploy tag), falling back to
+  package metadata when running outside a container
+- `details.build_date` — Build timestamp injected by Docker, defaults to `"unknown"`
+- `details.git_commit_sha` — Git commit SHA injected by Docker, defaults to `"unknown"`
 
 ### 4. Configuration (`config.py`)
 
@@ -98,13 +99,14 @@ Proto-generated Python files are checked into version control:
 - **Cons:** Manual regeneration required after `.proto` changes
 - **Mitigation:** CI job checks for drift (`git diff --exit-code`)
 
-### Version from `__init__.py`
+### Dynamic versioning
 
-Hatchling reads `__version__` from `src/petstore_grpc/__init__.py`:
+Version is defined when the image is assembled:
 
-- Single source of truth
-- Simple to update (just edit the string)
-- Runtime lookup via `importlib.metadata.version("petstore-grpc")`
+- Docker builds accept `VERSION` as a build argument and bake it into the runtime environment
+- The health endpoint reads `VERSION` first so the deployed image always reports the release tag
+- Local non-container runs fall back to `importlib.metadata.version("petstore-grpc")`
+- No source file in the repository should contain the release version string
 
 ### Build Metadata via Docker ARG/ENV
 
@@ -135,7 +137,7 @@ Consolidates formatting and linting into a single tool:
 ```
 petstore-grpc/
 ├── src/petstore_grpc/         # Source code
-│   ├── __init__.py            # Package + version
+│   ├── __init__.py            # Package marker
 │   ├── __main__.py            # Entry point
 │   ├── server.py              # gRPC server
 │   ├── config.py              # Environment config

@@ -2,6 +2,7 @@
 
 import importlib.metadata
 import logging
+import os
 
 import grpc
 
@@ -32,11 +33,11 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
             HealthResponse with status, mode, and build details.
         """
         settings = get_settings()
-        version = importlib.metadata.version("petstore-grpc")
+        version = os.environ.get("VERSION") or importlib.metadata.version("petstore-grpc")
 
         response = health_pb2.HealthResponse(
             status="SERVING",
-            mode=settings.mode,
+            mode=settings.storage_mode,
             details=health_pb2.HealthResponse.Details(
                 version=version,
                 build_date=settings.build_date,
