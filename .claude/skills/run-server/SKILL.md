@@ -106,12 +106,12 @@ docker compose down
 
 ## Configuration Reference
 
-| Variable         | Default   | Description                       |
-| ---------------- | --------- | --------------------------------- |
-| `PORT`           | `50051`   | gRPC server port                  |
+| Variable         | Default   | Description                               |
+| ---------------- | --------- | ----------------------------------------- |
+| `PORT`           | `50051`   | gRPC server port                          |
 | `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
-| `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)     |
-| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)      |
+| `BUILD_DATE`     | `unknown` | Build timestamp (Docker only)             |
+| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (Docker only)              |
 
 ## Troubleshooting
 

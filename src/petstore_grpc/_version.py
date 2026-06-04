@@ -9,7 +9,6 @@ def _normalize_version(raw_version: str) -> str:
     The runtime image can still expose a tag-style version like ``v1.2.3``, but build metadata
     needs to remain valid for Python packaging.
     """
-
     if raw_version in {"", "local", "latest"}:
         return "0.0.0+local"
     if raw_version.startswith("v"):

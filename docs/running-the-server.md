@@ -18,13 +18,13 @@ This starts the server on `localhost:50051` in development mode.
 
 The server reads configuration from environment variables:
 
-| Variable         | Default   | Description                       |
-| ---------------- | --------- | --------------------------------- |
-| `PORT`           | `50051`   | gRPC server port                  |
+| Variable         | Default   | Description                               |
+| ---------------- | --------- | ----------------------------------------- |
+| `PORT`           | `50051`   | gRPC server port                          |
 | `STORAGE_MODE`   | `memory`  | Storage backend (memory, postgres, cloud) |
-| `VERSION`        | `local`   | Image/runtime version              |
-| `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)   |
-| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)    |
+| `VERSION`        | `local`   | Image/runtime version                     |
+| `BUILD_DATE`     | `unknown` | Build timestamp (set by Docker)           |
+| `GIT_COMMIT_SHA` | `unknown` | Git commit SHA (set by Docker)            |
 
 Example with custom configuration:
 

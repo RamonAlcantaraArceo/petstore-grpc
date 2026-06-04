@@ -65,8 +65,8 @@ grpcurl -plaintext -d '{}' localhost:50051 petstore.v1.Health/Check
 
 ## CLI client
 
-A Typer CLI is available under `cli/` with built-in environment defaults (`local`, `dev`,
-`staging`) and transport selection (`grpc`, `rest`).
+A Typer CLI is available under `cli/` with built-in environment defaults (`local`, `dev`, `staging`)
+and transport selection (`grpc`, `rest`).
 
 Both transports stay on the same environment host (for example, DEV uses
 `petstore-grpc-dev.fly.dev`).

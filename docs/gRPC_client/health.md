@@ -21,8 +21,8 @@ printf '\x00\x00\x00\x00\x00' | curl --http2 -i -X POST \
   --data-binary @-
 ```
 
-`$'\x00...'` is not reliable for this because shells cannot pass NUL bytes as argv literals.
-Piping `printf` into `--data-binary @-` sends the required 5-byte gRPC frame correctly.
+`$'\x00...'` is not reliable for this because shells cannot pass NUL bytes as argv literals. Piping
+`printf` into `--data-binary @-` sends the required 5-byte gRPC frame correctly.
 
 Expected `grpcurl` response shape:
 
